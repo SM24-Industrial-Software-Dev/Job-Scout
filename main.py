@@ -5,8 +5,9 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError, Cli
 
 app = FastAPI()
 
-# Specify your region here
 dynamodb = boto3.resource('dynamodb', region_name='us-east-1')  
+table = dynamodb.Table("Jobs")
+
 
 class Job(BaseModel):
     job_id: str
@@ -19,40 +20,9 @@ class UpdateJob(BaseModel):
     update_key: str
     update_value: str
 
-@app.post("/create-jobs-table/")
-def create_jobs_table():
-    try:
-        table = dynamodb.create_table(
-            TableName='Jobs',
-            KeySchema=[
-                {
-                    'AttributeName': 'job_id',
-                    'KeyType': 'HASH'  # Partition key
-                }
-            ],
-            AttributeDefinitions=[
-                {
-                    'AttributeName': 'job_id',
-                    'AttributeType': 'S'
-                }
-            ],
-            ProvisionedThroughput={
-                'ReadCapacityUnits': 10,
-                'WriteCapacityUnits': 10
-            }
-        )
-        table.meta.client.get_waiter('table_exists').wait(TableName='Jobs')
-        return {"message": "Table 'Jobs' created successfully."}
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ResourceInUseException':
-            return {"message": "Table 'Jobs' already exists."}
-        else:
-            raise HTTPException(status_code=500, detail=str(e))
-
 @app.post("/jobs/")
 def create_job(job: Job):
     try:
-        table = dynamodb.Table('Jobs')
         table.put_item(
             Item={
                 'job_id': job.job_id,
@@ -69,7 +39,6 @@ def create_job(job: Job):
 @app.get("/jobs/{job_id}")
 def get_job(job_id: str):
     try:
-        table = dynamodb.Table('Jobs')
         response = table.get_item(
             Key={
                 'job_id': job_id
@@ -86,7 +55,6 @@ def get_job(job_id: str):
 @app.put("/jobs/{job_id}")
 def update_job(job_id: str, update: UpdateJob):
     try:
-        table = dynamodb.Table('Jobs')
         response = table.update_item(
             Key={
                 'job_id': job_id
@@ -107,7 +75,6 @@ def update_job(job_id: str, update: UpdateJob):
 @app.delete("/jobs/{job_id}")
 def delete_job(job_id: str):
     try:
-        table = dynamodb.Table('Jobs')
         response = table.delete_item(
             Key={
                 'job_id': job_id
