@@ -44,14 +44,14 @@ def linkedin_scraper(job_title, location, page_number):
 
     print(f"Data updated with {len(jobs)} jobs from page {page_number}")
 
-    if len(jobs) == 0 or page_number >= 200:
+    if len(jobs) == 0 or page_number >= 100:
         with open('linkedin-jobs.json', 'w', encoding='utf-8') as json_file:
             json.dump(data, json_file, ensure_ascii=False, indent=4)
         print('File closed')
         return
 
     # Adding a delay to avoid hitting the server too quickly
-    # time.sleep(1)
+    time.sleep(1)
 
     linkedin_scraper(job_title, location, page_number + 25)
 
