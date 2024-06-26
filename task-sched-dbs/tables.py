@@ -1,8 +1,10 @@
+from typing import Any
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import boto3
 from enum import Enum
 from datetime import datetime, timezone
+import isodate
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
 
 app = FastAPI()
@@ -17,6 +19,8 @@ class Mode(Enum):
     REFRESH = "refresh"
 
 class Task(BaseModel):
+    def __init__(self, task_function):
+        self.task_function = task_function
     task_id: int
     user_id: int
     mode: Mode
@@ -24,6 +28,7 @@ class Task(BaseModel):
     interval: str
     retries: int
     created: int
+
 
 class UpdateTask(BaseModel):
     update_key: str
@@ -41,6 +46,8 @@ class ExecutionData(BaseModel):
     next_exec_time: int
     task_id: int
 
+#adds the task to the tasks table as well as the executionData table
+#if there's an error with either of those additions, throws an exception
 @app.post("/tasks/")
 def create_task(task: Task):
     try:
@@ -53,6 +60,12 @@ def create_task(task: Task):
                 'interval': task.interval,
                 'retries': task.retries,
                 'created': task.created
+            }
+        )
+        executions.put_item(
+            Item={
+                'task_id': task.task_id,
+                'next_exec_time': datetime.now() + isodate.parse_duration(task.interval)
             }
         )
         return {"message": f"Task {task.task_id} created successfully."}
@@ -107,6 +120,9 @@ def delete_task(task_id: int):
     except (NoCredentialsError, PartialCredentialsError) as e:
         raise HTTPException(status_code=500, detail=str(e))
     
+def execute_task(task: Task):
+    ##insert kafka listening code here
+    this_task = task.task_function
 
 def get_unix_timestamp_by_min(dt: datetime) -> int:
     # Set seconds and microseconds to zero
