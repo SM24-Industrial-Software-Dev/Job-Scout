@@ -8,4 +8,4 @@ st.text(
     "\nmanual queries and real-time results.")
 
 
-### GET GOOGLE SSO INTEGRATED WITH STREAMLIT
+### GET GOOGLE SSO INTEGRATED WITH STREAMLIT - https://discuss.streamlit.io/t/google-authentication-in-a-streamlit-app/43252 ###
