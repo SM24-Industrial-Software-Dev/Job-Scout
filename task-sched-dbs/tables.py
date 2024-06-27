@@ -1,26 +1,15 @@
-from typing import Any
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
-import boto3
 from enum import Enum
-from datetime import datetime, timezone
-import isodate
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError, ClientError
+from typing import Optional
 
-app = FastAPI()
+import boto3
+from pydantic import BaseModel
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')  
-tasks = dynamodb.Table("Tasks")
-executions = dynamodb.Table("Executions")
-history = dynamodb.Table("History")
 
 class Mode(Enum):
     NOTIFS = "notifications"
     REFRESH = "refresh"
 
 class Task(BaseModel):
-    def __init__(self, task_function):
-        self.task_function = task_function
     task_id: int
     user_id: int
     mode: Mode
@@ -29,11 +18,6 @@ class Task(BaseModel):
     retries: int
     created: int
 
-
-class UpdateTask(BaseModel):
-    update_key: str
-    update_value: str
-
 class HistoryData(BaseModel):
     task_id: int
     exec_time: int
@@ -41,99 +25,65 @@ class HistoryData(BaseModel):
     retries: int
     last_update: int
 
-
-class ExecutionData(BaseModel):
+class ExecutionsData(BaseModel):
     next_exec_time: int
     task_id: int
+    segment: int
 
-#adds the task to the tasks table as well as the executionData table
-#if there's an error with either of those additions, throws an exception
-@app.post("/tasks/")
-def create_task(task: Task):
-    try:
-        tasks.put_item(
-            Item={
-                'task_id': task.task_id,
-                'user_id': task.user_id,
-                'mode': task.mode,
-                'recurring': task.recurring,
-                'interval': task.interval,
-                'retries': task.retries,
-                'created': task.created
-            }
-        )
-        executions.put_item(
-            Item={
-                'task_id': task.task_id,
-                'next_exec_time': datetime.now() + isodate.parse_duration(task.interval)
-            }
-        )
-        return {"message": f"Task {task.task_id} created successfully."}
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        raise HTTPException(status_code=500, detail=str(e))
+class Tables:
+    def __init__(self):
+        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        self.tasks = self.dynamodb.Table('tasks')
+        self.executions = self.dynamodb.Table('executions')
+        self.history = self.dynamodb.Table('history')
 
-@app.get("/tasks/{task_id}")
-def get_task(task_id: int):
-    try:
-        response = tasks.get_item(
-            Key={
-                'task_id': task_id
-            }
-        )
-        item = response.get('Item')
-        if item is not None:
-            return item
-        else:
-            raise HTTPException(status_code=404, detail=f"Task {task_id} not found.")
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput):
+        try:
+            table = self.dynamodb.create_table(
+                TableName=table_name,
+                KeySchema=key_schema,
+                AttributeDefinitions=attribute_definitions,
+                ProvisionedThroughput=provisioned_throughput
+            )
+            table.wait_until_exists()
+            print(f"Table {table_name} created successfully.")
+        except Exception as e:
+            print(f"Error creating table {table_name}: {e}")
 
-@app.put("/tasks/{task_id}")
-def update_task(task_id: int, update: UpdateTask):
-    try:
-        response = tasks.update_item(
-            Key={
-                'task_id': task_id
+    def initialize_tables(self):
+        tables = {
+            'tasks': {
+                'key_schema': [
+                    {'AttributeName': 'user_id', 'KeyType': 'HASH'},
+                    {'AttributeName': 'task_id', 'KeyType': 'RANGE'}
+                ],
+                'attribute_definitions': [
+                    {'AttributeName': 'user_id', 'AttributeType': 'N'},
+                    {'AttributeName': 'task_id', 'AttributeType': 'N'}
+                ],
+                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             },
-            UpdateExpression=f"set #attr = :val",
-            ExpressionAttributeNames={
-                '#attr': update.update_key
+            'executions': {
+                'key_schema': [
+                    {'AttributeName': 'segment', 'KeyType': 'HASH'},
+                    {'AttributeName': 'next_exec_time', 'KeyType': 'RANGE'}
+                ],
+                'attribute_definitions': [
+                    {'AttributeName': 'segment', 'AttributeType': 'N'},
+                    {'AttributeName': 'next_exec_time', 'AttributeType': 'N'},
+                    {'AttributeName': 'task_id', 'AttributeType': 'N'}
+                ],
+                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             },
-            ExpressionAttributeValues={
-                ':val': update.update_value
-            },
-            ReturnValues="UPDATED_NEW"
-        )
-        return response
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.delete("/tasks/{task_id}")
-def delete_task(task_id: int):
-    try:
-        response = tasks.delete_item(
-            Key={
-                'task_id': task_id
+            'history': {
+                'key_schema': [
+                    {'AttributeName': 'task_id', 'KeyType': 'HASH'},
+                    {'AttributeName': 'exec_time', 'KeyType': 'RANGE'}
+                ],
+                'attribute_definitions': [
+                    {'AttributeName': 'task_id', 'AttributeType': 'N'},
+                    {'AttributeName': 'exec_time', 'AttributeType': 'N'}
+                ],
+                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             }
-        )
-        return response
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        raise HTTPException(status_code=500, detail=str(e))
-    
-def execute_task(task: Task):
-    ##insert kafka listening code here
-    if task.mode == Mode.NOTIFS:
-        noti = task.task_function
-    elif task.mode == Mode.REFRESH:
-        refresh = task.task_function
-
-def get_unix_timestamp_by_min(dt: datetime) -> int:
-    # Set seconds and microseconds to zero
-    dt = dt.replace(second=0, microsecond=0)
-    
-    # Convert to UNIX timestamp
-    unix_timestamp = int(dt.timestamp())
-    return unix_timestamp
-
-# To run the server, use the command below in your terminal
-# uvicorn main:app --reload
+        }
