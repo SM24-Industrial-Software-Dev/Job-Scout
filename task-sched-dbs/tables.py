@@ -122,7 +122,10 @@ def delete_task(task_id: int):
     
 def execute_task(task: Task):
     ##insert kafka listening code here
-    this_task = task.task_function
+    if task.mode == Mode.NOTIFS:
+        noti = task.task_function
+    elif task.mode == Mode.REFRESH:
+        refresh = task.task_function
 
 def get_unix_timestamp_by_min(dt: datetime) -> int:
     # Set seconds and microseconds to zero
