@@ -1,16 +1,15 @@
 import os
-from flask import Flask, redirect, url_for, session, request
+import subprocess
+import psutil
+from flask import Flask, redirect, url_for, session
 from authlib.integrations.flask_client import OAuth
-
-
-
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
 
-app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com' 
-app.config['GOOGLE_SECRET'] = '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'  
-app.config['GOOGLE_REDIRECT_URI'] = 'http://localhost:5000/callback'  
+app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
+app.config['GOOGLE_SECRET'] = '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'
+app.config['GOOGLE_REDIRECT_URI'] = 'http://localhost:5000/callback'
 
 oauth = OAuth(app)
 google = oauth.register(
@@ -50,6 +49,18 @@ def authorize():
     user_info = resp.json()
     session['user'] = user_info
     return f"Logged in as: {user_info['email']}"
+
+@app.route('/streamlit')
+def run_streamlit():
+    user = session.get('user')
+    if not user:
+        return redirect('/login')
+    
+    # Check if Streamlit is already running
+    if not any("streamlit" in p.name() for p in psutil.process_iter()):
+        subprocess.Popen(["streamlit", "run", "streamlit_app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    return redirect('http://localhost:8501')
 
 if __name__ == '__main__':
     app.run('localhost', 5000, debug=True)
