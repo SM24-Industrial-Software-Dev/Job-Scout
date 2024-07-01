@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import isodate
 from Tables import Tables, Task, Mode
 from botocore.exceptions import ClientError
+from enum import Enum
 
 
 
@@ -26,14 +27,14 @@ class Scheduler:
                     'recurring': t.recurring,
                     'interval': t.interval,
                     'retries': t.retries,
-                    'created': t.created
+                    'created': self.get_unix_timestamp_by_min(datetime.fromtimestamp(t.created)) 
                 }
             )
 
             self.table_set.executions.put_item(
                 Item={
                     'task_id': t.task_id,
-                    'next_exec_time': datetime.now() + isodate.parse_duration(t.interval),
+                    'next_exec_time': self.get_unix_timestamp_by_min(datetime.now() + isodate.parse_duration(t.interval)),
                     'segment': self.get_next_segment()
                 }
             )
@@ -80,7 +81,21 @@ class Scheduler:
         # Convert to UNIX timestamp
         unix_timestamp = int(dt.timestamp())
         return unix_timestamp
+    
+    def convert_datetime_to_iso8601(self, dt: datetime) -> str:
+        # Convert datetime to ISO 8601 string
+        return dt.isoformat()
 
 if __name__ == "__main__":
-    print("main is running")
+    print("Creating Scheduler...")
     scheduler = Scheduler()
+    new_task = Task(
+        task_id=1,
+        user_id=1,
+        mode= "notifications",
+        recurring=True,
+        interval="PT10M",
+        retries=3,
+        created=int(datetime.now().timestamp())
+    )
+    scheduler.add_task(new_task)

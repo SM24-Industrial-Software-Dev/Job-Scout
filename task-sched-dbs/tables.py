@@ -13,7 +13,7 @@ class Mode(Enum):
 class Task(BaseModel):
     task_id: int
     user_id: int
-    mode: Mode
+    mode: str
     recurring: bool
     interval: str
     retries: int
@@ -21,13 +21,13 @@ class Task(BaseModel):
 
 class HistoryData(BaseModel):
     task_id: int
-    exec_time: datetime
+    exec_time: int
     status: str
     retries: int
     last_update: int
 
 class ExecutionsData(BaseModel):
-    next_exec_time: datetime
+    next_exec_time: int
     task_id: int
     segment: int
 
@@ -82,7 +82,7 @@ class Tables:
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
-                    {'AttributeName': 'exec_time', 'AttributeType': 'N'},
+                    {'AttributeName': 'exec_time', 'AttributeType': 'S'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             }
