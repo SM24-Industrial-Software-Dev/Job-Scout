@@ -5,7 +5,7 @@ from confluent_kafka.admin import AdminClient, NewTopic
 
 
 def create_topic(topic, num_partitions=1, replication_factor=1):
-    admin_client = AdminClient({'bootstrap.servers': 'localhost:9092'})
+    admin_client = AdminClient({'bootstrap.servers': 'kafka-1:9092'})
     topic_config = {
         'topic': topic,
         'num_partitions': num_partitions,
@@ -23,7 +23,7 @@ def create_topic(topic, num_partitions=1, replication_factor=1):
 
 
 def produce_message(topic, message):
-    p = Producer({'bootstrap.servers': 'localhost:9092'})
+    p = Producer({'bootstrap.servers': 'kafka-1:9092'})
 
     try:
         p.produce(topic, message.encode('utf-8'))
@@ -35,7 +35,7 @@ def produce_message(topic, message):
 
 def consume_messages(topic):
     c = Consumer({
-        'bootstrap.servers': 'localhost:9092',
+        'bootstrap.servers': 'kafka-1:9092',
         'group.id': 'mygroup',
         'auto.offset.reset': 'earliest'
     })
@@ -57,7 +57,7 @@ def consume_messages(topic):
     c.close()
 
 def delete_topic(topic):
-    admin_client = AdminClient({'bootstrap.servers': 'localhost:9092'})
+    admin_client = AdminClient({'bootstrap.servers': 'kafka-1:9092'})
 
     # Delete the topic
     fs = admin_client.delete_topics([topic])

@@ -1,5 +1,6 @@
 from enum import Enum
 from typing import Optional
+from datetime import datetime
 
 import boto3
 from pydantic import BaseModel
@@ -20,13 +21,13 @@ class Task(BaseModel):
 
 class HistoryData(BaseModel):
     task_id: int
-    exec_time: int
+    exec_time: datetime
     status: str
     retries: int
     last_update: int
 
 class ExecutionsData(BaseModel):
-    next_exec_time: int
+    next_exec_time: datetime
     task_id: int
     segment: int
 
@@ -59,7 +60,7 @@ class Tables:
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'user_id', 'AttributeType': 'N'},
-                    {'AttributeName': 'task_id', 'AttributeType': 'N'}
+                    {'AttributeName': 'task_id', 'AttributeType': 'N'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             },
@@ -71,7 +72,6 @@ class Tables:
                 'attribute_definitions': [
                     {'AttributeName': 'segment', 'AttributeType': 'N'},
                     {'AttributeName': 'next_exec_time', 'AttributeType': 'N'},
-                    {'AttributeName': 'task_id', 'AttributeType': 'N'}
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             },
@@ -82,8 +82,45 @@ class Tables:
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
-                    {'AttributeName': 'exec_time', 'AttributeType': 'N'}
+                    {'AttributeName': 'exec_time', 'AttributeType': 'N'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             }
         }
+        for table_name, table_config in tables.items():
+            self.create_table(table_name,
+                              table_config['key_schema'],
+                              table_config['attribute_definitions'],
+                              table_config['provisioned_throughput'])
+if __name__ == "__main__":
+    print("here comes main")
+    table = Tables()
+    table.initialize_tables()
+    new_task = Task(
+        task_id=1,
+        user_id=1,
+        mode=Mode.NOTIFS,
+        recurring=True,
+        interval="PT10M",
+        retries=3,
+        created=int(datetime.now().timestamp())
+    )
+    print("here comes main 2")
+    try:
+        print("here comes main 3")
+        table.tasks.put_item(
+            Item={
+                'task_id': new_task.task_id,
+                'user_id': new_task.user_id,
+                'mode': new_task.mode.value,  # Assuming mode needs to be the enum value
+                'recurring': new_task.recurring,
+                'interval': new_task.interval,
+                'retries': new_task.retries,
+                'created': new_task.created
+            }
+        )
+        print(f"Task {new_task.task_id} added successfully.")
+    except Exception as e:
+        print("here comes main 3.5")
+        print(f"Error adding task: {e}")
+    print("here comes main 4")
