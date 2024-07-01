@@ -18,14 +18,14 @@ google = oauth.register(
     client_secret=app.config['GOOGLE_SECRET'],
     authorize_url='https://accounts.google.com/o/oauth2/auth',
     authorize_params=None,
-    access_token_url='https://accounts.google.com/o/oauth2/token',
+    access_token_url='https://oauth2.googleapis.com/token',
     access_token_params=None,
     refresh_token_url=None,
-    redirect_uri=app.config['GOOGLE_REDIRECT_URI'],
     client_kwargs={
         'scope': 'openid email profile',
         'prompt': 'select_account'
-    }
+    },
+    server_metadata_url='https://accounts.google.com/.well-known/openid-configuration'
 )
 
 @app.route('/')
@@ -45,10 +45,10 @@ def logout():
 @app.route('/callback')
 def authorize():
     token = google.authorize_access_token()
-    resp = google.get('userinfo')
+    resp = google.get('https://openidconnect.googleapis.com/v1/userinfo')
     user_info = resp.json()
     session['user'] = user_info
-    return f"Logged in as: {user_info['email']}"
+    return redirect('http://localhost:8501')
 
 @app.route('/streamlit')
 def run_streamlit():
@@ -58,7 +58,14 @@ def run_streamlit():
     
     # Check if Streamlit is already running
     if not any("streamlit" in p.name() for p in psutil.process_iter()):
-        subprocess.Popen(["streamlit", "run", "streamlit_app.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        process = subprocess.Popen(
+            ["streamlit", "run", "app.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        stdout, stderr = process.communicate()
+        if process.returncode != 0:
+            return f"Failed to start Streamlit: {stderr.decode()}"
     
     return redirect('http://localhost:8501')
 
