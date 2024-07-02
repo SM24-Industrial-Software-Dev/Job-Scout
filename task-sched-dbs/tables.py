@@ -1,23 +1,28 @@
-from enum import Enum
 from typing import Optional
 from datetime import datetime
 
 import boto3
 from pydantic import BaseModel
 
-
-class Mode(Enum):
-    NOTIFS = "notifications"
-    REFRESH = "refresh"
-
 class Task(BaseModel):
     task_id: int
-    user_id: int
-    mode: str
     recurring: bool
     interval: str
     retries: int
     created: int
+    type: str
+
+class Refresh(Task):
+    last_refresh: int
+
+class Notifs(Task):
+    user_id: int
+    email: str
+    job_id: int
+    title: str
+    description: str
+    company: str
+    location: str
 
 class HistoryData(BaseModel):
     task_id: int
@@ -55,11 +60,9 @@ class Tables:
         tables = {
             'tasks': {
                 'key_schema': [
-                    {'AttributeName': 'user_id', 'KeyType': 'HASH'},
-                    {'AttributeName': 'task_id', 'KeyType': 'RANGE'}
+                    {'AttributeName': 'task_id', 'KeyType': 'HASH'}
                 ],
                 'attribute_definitions': [
-                    {'AttributeName': 'user_id', 'AttributeType': 'N'},
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
@@ -96,31 +99,3 @@ if __name__ == "__main__":
     print("here comes main")
     table = Tables()
     table.initialize_tables()
-    new_task = Task(
-        task_id=1,
-        user_id=1,
-        mode=Mode.NOTIFS,
-        recurring=True,
-        interval="PT10M",
-        retries=3,
-        created=int(datetime.now().timestamp())
-    )
-    print("here comes main 2")
-    try:
-        print("here comes main 3")
-        table.tasks.put_item(
-            Item={
-                'task_id': new_task.task_id,
-                'user_id': new_task.user_id,
-                'mode': new_task.mode.value,  # Assuming mode needs to be the enum value
-                'recurring': new_task.recurring,
-                'interval': new_task.interval,
-                'retries': new_task.retries,
-                'created': new_task.created
-            }
-        )
-        print(f"Task {new_task.task_id} added successfully.")
-    except Exception as e:
-        print("here comes main 3.5")
-        print(f"Error adding task: {e}")
-    print("here comes main 4")
