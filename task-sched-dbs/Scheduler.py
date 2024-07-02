@@ -1,8 +1,7 @@
 from datetime import datetime, timezone
 import isodate
-from Tables import Tables, Task, Mode
+from Tables import Tables, Task, Refresh, Notifs
 from botocore.exceptions import ClientError
-from enum import Enum
 
 
 
@@ -19,18 +18,31 @@ class Scheduler:
 
     def add_task(self, t: Task):
         try:
-            self.table_set.tasks.put_item(
-                Item={
-                    'task_id': t.task_id,
+            task_item={
+                'task_id': t.task_id,
+                'recurring': t.recurring,
+                'interval': t.interval,
+                'retries': t.retries,
+                'created': self.get_unix_timestamp_by_min(datetime.fromtimestamp(t.created)),
+                'type': t.type
+            }
+            # Handle specific task types
+            if isinstance(t, Refresh):
+                task_item['last_refresh'] = t.last_refresh
+                
+            elif isinstance(t, Notifs):
+                task_item.update({
                     'user_id': t.user_id,
-                    'mode': t.mode,
-                    'recurring': t.recurring,
-                    'interval': t.interval,
-                    'retries': t.retries,
-                    'created': self.get_unix_timestamp_by_min(datetime.fromtimestamp(t.created)) 
-                }
-            )
-
+                    'email': t.email,
+                    'job_id': t.job_id,
+                    'title': t.title,
+                    'description': t.description,
+                    'company': t.company,
+                    'location': t.location
+                })
+            else:
+                raise UnknownTaskTypeError(t)
+            self.table_set.tasks.put_item(Item=task_item)
             self.table_set.executions.put_item(
                 Item={
                     'task_id': t.task_id,
@@ -38,7 +50,6 @@ class Scheduler:
                     'segment': self.get_next_segment()
                 }
             )
-
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
@@ -86,16 +97,22 @@ class Scheduler:
         # Convert datetime to ISO 8601 string
         return dt.isoformat()
 
+class UnknownTaskTypeError(Exception):
+        def __init__(self, task: Task):
+            super().__init__(f"Unknown task type for task: {task.task_id}")
+
+
+##TEST CODE##
 if __name__ == "__main__":
     print("Creating Scheduler...")
     scheduler = Scheduler()
-    new_task = Task(
+    new_task = Refresh(
         task_id=1,
-        user_id=1,
-        mode= "notifications",
         recurring=True,
         interval="PT10M",
         retries=3,
-        created=int(datetime.now().timestamp())
+        created=int(datetime.now().timestamp()),
+        last_refresh=0,
+        type = "refresh"
     )
     scheduler.add_task(new_task)
