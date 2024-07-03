@@ -11,7 +11,7 @@ from boto3.dynamodb.conditions import Key
 class Scheduler:
 
     def __init__(self, min_seg: int = 1, max_seg: int = 2):
-        if min_seg > max_seg:
+        if min_seg >= max_seg:
             raise ValueError("min_seg must be less than max_seg")
         self.table_set = Tables()
         self.segment_min = min_seg
@@ -68,7 +68,7 @@ class Scheduler:
 
     def get_next_segment(self):
         self.segment += 1
-        if self.segment > self.segment_max:
+        if self.segment >= self.segment_max:
             self.segment = self.segment_min
         return self.segment
     

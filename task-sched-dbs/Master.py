@@ -10,13 +10,16 @@ class Executer:
     def __init__(self, dynamodb, segment_start: int, segment_end: int):
         self.dynamodb = dynamodb
         self.segment_start = segment_start
+        print("min seg: " + str(segment_start))
         self.segment_end = segment_end
+        print("max seg: " + str(segment_end))
         self.executions_table = self.dynamodb.Table('executions')
         self.history_table = self.dynamodb.Table('history')
 
     def get_tasks(self, current_time):
         tasks = []
         for segment in range(self.segment_start, self.segment_end + 1):
+            print ("checking segment: " + str(segment))
             response = self.executions_table.query(
                 KeyConditionExpression=boto3.dynamodb.conditions.Key('segment').eq(segment) &
                                        boto3.dynamodb.conditions.Key('next_exec_time').eq(current_time)
@@ -38,7 +41,7 @@ class Executer:
             #print(task)
 
             ##In future, make it so we can just update the next_exec_time and not delete it##
-            self.delete_execution_from_dynamodb(task, current_time)
+            #self.delete_execution_from_dynamodb(task, current_time)
             
     
     def delete_execution_from_dynamodb(self, task_id, next_exec_time):
@@ -149,4 +152,5 @@ if __name__ == "__main__":
             type = "refresh"
         )
         sched.add_task(new_task)
+        time.sleep(30)
         
