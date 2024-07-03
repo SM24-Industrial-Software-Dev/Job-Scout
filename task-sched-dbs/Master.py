@@ -83,7 +83,7 @@ def run_master_in_background(master):
     master.run()
 
 if __name__ == "__main__":
-    print("starting master...")
+    print("Starting Master...")
     master = Master()
     sched = master.scheduler
     
@@ -93,7 +93,7 @@ if __name__ == "__main__":
     master_thread.start()
 
     # Now continue with your main scheduler logic, receiving tasks and updating databases
-    print("Running Scheduler and Tasking Tasks...")
+    print("Running Scheduler and Receiving Tasks...")
     while True:
         # Your scheduler logic to receive new tasks and update databases
         new_task = Refresh(
