@@ -29,7 +29,7 @@ class HistoryData(BaseModel):
     exec_time: int
     status: str
     retries: int
-    last_update: int
+    #last_update: int
 
 class ExecutionsData(BaseModel):
     next_exec_time: int
@@ -85,7 +85,7 @@ class Tables:
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
-                    {'AttributeName': 'exec_time', 'AttributeType': 'S'},
+                    {'AttributeName': 'exec_time', 'AttributeType': 'N'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
             }
