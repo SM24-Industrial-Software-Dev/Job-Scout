@@ -10,12 +10,12 @@ from boto3.dynamodb.conditions import Key
 
 class Scheduler:
 
-    def __init__(self, min_seg: int = 1, max_seg: int = None):
-        if min_seg >= max_seg:
+    def __init__(self, min_seg: int = 1, max_seg: int = 2):
+        if min_seg > max_seg:
             raise ValueError("min_seg must be less than max_seg")
         self.table_set = Tables()
         self.segment_min = min_seg
-        self.segment_max = max_seg if max_seg is not None else sys.maxsize
+        self.segment_max = max_seg
         self.segment = self.segment_min
         self.initialize_tables()
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     new_task = Refresh(
         task_id=1,
         recurring=True,
-        interval="PT10M",
+        interval="PT1M",
         retries=3,
         created=int(datetime.now().timestamp()),
         last_refresh=0,

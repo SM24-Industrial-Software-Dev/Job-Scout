@@ -1,5 +1,7 @@
 #Only for testing purposes
+
 import boto3
+import time
 
 # Initialize DynamoDB client
 dynamodb = boto3.client('dynamodb', region_name='us-east-1')
@@ -16,3 +18,5 @@ for table_name in table_names:
         print(f"Table {table_name} not found.")
     except Exception as e:
         print(f"Error deleting table {table_name}: {e}")
+print("loading... 15 seconds remaining... ")
+time.sleep(15)
