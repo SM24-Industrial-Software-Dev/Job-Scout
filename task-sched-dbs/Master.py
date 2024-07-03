@@ -4,6 +4,7 @@ import time
 from Tables import Tables
 from Scheduler import Scheduler, Refresh, Notifs, Task
 import threading
+import random
 
 class Executer:
     def __init__(self, dynamodb, segment_start: int, segment_end: int):
@@ -11,6 +12,7 @@ class Executer:
         self.segment_start = segment_start
         self.segment_end = segment_end
         self.executions_table = self.dynamodb.Table('executions')
+        self.history_table = self.dynamodb.Table('history')
 
     def get_tasks(self, current_time):
         tasks = []
@@ -31,6 +33,46 @@ class Executer:
             #print("hello")
         for task in tasks:
             self.publish_to_kafka(task)
+            self.add_to_history_data(task, current_time, "success", 1)
+
+            #print(task)
+
+            ##In future, make it so we can just update the next_exec_time and not delete it##
+            self.delete_execution_from_dynamodb(task, current_time)
+            
+    
+    def delete_execution_from_dynamodb(self, task_id, next_exec_time):
+        try:
+            response = self.executions_table.scan(
+                FilterExpression=boto3.dynamodb.conditions.Attr('task_id').eq(task_id) &
+                                 boto3.dynamodb.conditions.Attr('next_exec_time').eq(next_exec_time)
+            )
+            for item in response['Items']:
+                self.executions_table.delete_item(
+                    Key={
+                        'next_exec_time': item['next_exec_time'],
+                        'segment': item['segment']
+                    }
+                )
+                print(f"Deleted task_id={task_id}, next_exec_time={next_exec_time} from executions table.")
+        except Exception as e:
+            print(f"Error deleting task_id={task_id}, next_exec_time={next_exec_time}: {e}")
+    
+    def add_to_history_data(self, task_id, exec_time, status, retries):
+        # Convert task_id to int if necessary
+        task_id = int(task_id)
+        #print("woohoo")
+        
+        # Insert item into historydata table
+        self.history_table.put_item(
+            Item={
+                'task_id': task_id,
+                'exec_time': exec_time,
+                'status': status,
+                'retries': retries
+            }
+        )
+        print(f"Added task_id={task_id} to historydata table with status '{status}' and {retries} retries.")
 
     def publish_to_kafka(self, task):
         # Placeholder logic for publishing task to Kafka
@@ -95,9 +137,10 @@ if __name__ == "__main__":
     # Now continue with your main scheduler logic, receiving tasks and updating databases
     print("Running Scheduler and Receiving Tasks...")
     while True:
+        rando = random.randint(1,10000)
         # Your scheduler logic to receive new tasks and update databases
         new_task = Refresh(
-            task_id=1,
+            task_id=rando,
             recurring=True,
             interval="PT1M",
             retries=3,

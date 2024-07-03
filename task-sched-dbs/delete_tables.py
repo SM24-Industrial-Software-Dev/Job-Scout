@@ -18,5 +18,5 @@ for table_name in table_names:
         print(f"Table {table_name} not found.")
     except Exception as e:
         print(f"Error deleting table {table_name}: {e}")
-print("loading... 15 seconds remaining... ")
-time.sleep(15)
+print("loading... 5 seconds remaining... ")
+time.sleep(5)
