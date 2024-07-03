@@ -1,4 +1,4 @@
-##Un-comment the return and sys.exit() statements to run the test script with print statements
+##Comment the return and sys.exit() statements to run the test script with print statements
 ##For Docker, the container would exit due to return and sys.exit() so I commented them out
 
 import sys
@@ -43,7 +43,7 @@ def consume_messages(topic):
     try:
         for msg in consumer:
             print(f'Received message: {msg.value.decode("utf-8")}')
-            #return
+            return
     except Exception as e:
         print(f'Consumer error: {e}')
     finally:
@@ -62,7 +62,8 @@ def delete_topic(topic):
         admin_client.close()
 
 if __name__ == '__main__':
-    topic_name = 'the_topic'
+    topic_name = 'new_topic'
+    
 
     # Create the topic (you can comment this out after the first run)
     create_topic(topic_name)
@@ -75,4 +76,4 @@ if __name__ == '__main__':
 
     # Delete topic
     delete_topic(topic_name)
-    #sys.exit()
+    sys.exit()
