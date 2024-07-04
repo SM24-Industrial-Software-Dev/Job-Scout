@@ -6,7 +6,7 @@ import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from typing import Optional
+from typing import List
 
 data = []
 headers = {
@@ -20,16 +20,17 @@ table = dynamodb.Table('Jobs')
 job_counter = 0
 
 class Job(BaseModel):
-    job_id: str
+    job_id: int
     title: str
     company: str
     location: str
-    description: Optional[str] = 'N/A'
+    link: str  
+    description: str = 'N/A'
 
 app = FastAPI()
 
 @app.get("/jobs/{job_id}")
-async def get_job(job_id: str):
+async def get_job(job_id: int):
     try:
         response = table.get_item(Key={'job_id': job_id})
         if 'Item' not in response:
@@ -39,20 +40,22 @@ async def get_job(job_id: str):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.put("/jobs/{job_id}")
-async def update_job(job_id: str, job: Job):
+async def update_job(job_id: int, job: Job):
     try:
         response = table.update_item(
             Key={'job_id': job_id},
-            UpdateExpression="set #t=:t, #c=:c, #l=:l, description=:d",
+            UpdateExpression="set #t=:t, #c=:c, #l=:l, #lk=:lk, description=:d",
             ExpressionAttributeNames={
                 '#t': 'title',
                 '#c': 'company',
-                '#l': 'location'
+                '#l': 'location',
+                '#lk': 'link'
             },
             ExpressionAttributeValues={
                 ':t': job.title,
                 ':c': job.company,
                 ':l': job.location,
+                ':lk': job.link,
                 ':d': job.description
             },
             ReturnValues="UPDATED_NEW"
@@ -62,10 +65,32 @@ async def update_job(job_id: str, job: Job):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.delete("/jobs/{job_id}")
-async def delete_job(job_id: str):
+async def delete_job(job_id: int):
     try:
         response = table.delete_item(Key={'job_id': job_id})
         return {"message": "Job deleted successfully"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/jobs/location/{location}", response_model=List[Job])
+async def get_jobs_by_location(location: str):
+    try:
+        response = table.query(
+            IndexName='location-index',  # Created a GSI for 'location'
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('location').eq(location)
+        )
+        return response.get('Items', [])
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/jobs/company/{company}", response_model=List[Job])
+async def get_jobs_by_company(company: str):
+    try:
+        response = table.query(
+            IndexName='company-index',  # Created a GSI for 'company'
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('company').eq(company)
+        )
+        return response.get('Items', [])
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -98,13 +123,14 @@ def linkedin_scraper(job_title, location, page_number):
 
         job_counter += 1
         
-        job_id = job_counter  # Assuming the job_id can be extracted from the URL
+        job_id = job_counter  # job_id incremented for every job added
 
         job_data = {
-            'job_id': str(job_id),
+            'job_id': int(job_id),
             'title': job_title,
             'company': job_company,
             'location': job_location,
+            'link' : job_link,
             'description': 'N/A'  # Description is not scraped, set a default value
         }
 
