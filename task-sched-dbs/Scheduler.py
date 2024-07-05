@@ -49,6 +49,7 @@ class Scheduler:
             else:
                 raise UnknownTaskTypeError(t)
             self.table_set.tasks.put_item(Item=task_item)
+            print("task " + str(t.task_id) + " added to tasks table!")
             self.table_set.executions.put_item(
                 Item={
                     'task_id': t.task_id,
@@ -56,6 +57,7 @@ class Scheduler:
                     'segment': self.get_next_segment()
                 }
             )
+            print("task " + str(t.task_id) + " added to EXECUTIONS table!")
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
