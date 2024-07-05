@@ -6,8 +6,6 @@ from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
 
-
-
 class Scheduler:
 
     def __init__(self, min_seg: int = 1, max_seg: int = 2):
@@ -24,7 +22,7 @@ class Scheduler:
 
     def add_task(self, t: Task):
         try:
-            task_item={
+            task_item = {
                 'task_id': t.task_id,
                 'recurring': t.recurring,
                 'interval': t.interval,
@@ -35,7 +33,7 @@ class Scheduler:
             # Handle specific task types
             if isinstance(t, Refresh):
                 task_item['last_refresh'] = t.last_refresh
-                
+
             elif isinstance(t, Notifs):
                 task_item.update({
                     'user_id': t.user_id,
@@ -73,16 +71,16 @@ class Scheduler:
         if self.segment >= self.segment_max:
             self.segment = self.segment_min
         return self.segment
-    
-    def set_segment(self, segment:int):
-        self.segment=segment
 
-    def set_max_segment(self, seg_max:int):
-        self.segment_max=seg_max
+    def set_segment(self, segment: int):
+        self.segment = segment
 
-    def set_min_segment(self, seg_min:int):
-        self.segment_min=seg_min
-         
+    def set_max_segment(self, seg_max: int):
+        self.segment_max = seg_max
+
+    def set_min_segment(self, seg_min: int):
+        self.segment_min = seg_min
+
     def query_executions_by_next_exec_time(self, next_exec_time):
         try:
             response = self.table_set.executions.query(
@@ -90,12 +88,14 @@ class Scheduler:
             )
 
             for item in response['Items']:
-                print(item)  # Process each item as needed -- eventually return them so they can be executed
+                # Process each item as needed -- eventually return them so they can be executed
+                print(item)
 
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
-            print(f"Error querying executions table: {error_code} - {error_message}")
+            print(f"Error querying executions table: {
+                  error_code} - {error_message}")
             # Handle specific error cases here
 
         except Exception as e:
@@ -103,7 +103,7 @@ class Scheduler:
             # Handle unexpected errors or log them for investigation
 
     def get_unix_timestamp_by_min(self, dt: datetime) -> int:
-       
+
         # Set seconds and microseconds to zero
 
         dt = dt.replace(second=0, microsecond=0)
@@ -111,17 +111,18 @@ class Scheduler:
         # Convert to UNIX timestamp
         unix_timestamp = int(dt.timestamp())
         return unix_timestamp
-    
+
     def convert_datetime_to_iso8601(self, dt: datetime) -> str:
         # Convert datetime to ISO 8601 string
         return dt.isoformat()
 
+
 class UnknownTaskTypeError(Exception):
-        def __init__(self, task: Task):
-            super().__init__(f"Unknown task type for task: {task.task_id}")
+    def __init__(self, task: Task):
+        super().__init__(f"Unknown task type for task: {task.task_id}")
 
 
-##TEST CODE##
+## TEST CODE##
 if __name__ == "__main__":
     print("Creating Scheduler...")
     scheduler = Scheduler()
@@ -132,6 +133,6 @@ if __name__ == "__main__":
         retries=3,
         created=int(datetime.now().timestamp()),
         last_refresh=0,
-        type = "refresh"
+        type="refresh"
     )
     scheduler.add_task(new_task)
