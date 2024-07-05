@@ -1,18 +1,29 @@
 import streamlit as st
 import boto3
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+import os
+from os.path import join, dirname
+from dotenv import load_dotenv
+from boto3.dynamodb.conditions import Attr
+import time
 
-# Streamlit app title and description
+# Load environment variables from .env file
+dotenv_path = join(dirname(__file__), '.env')
+load_dotenv(dotenv_path)
+
+# Initialize SQS and DynamoDB clients
+sqs = boto3.client('sqs')
+dynamodb = boto3.resource('dynamodb', region_name=os.getenv('AWS_DEFAULT_REGION'))
+queue_url = os.getenv("QUEUE_URL")
+table_name = os.getenv("DYNAMODB_TABLE")
+
 st.title("JobScout")
 st.text(
-    "JobScout is a web application that simplifies job searching by querying multiple job "
-    "listing sites and saving user-defined searches. Utilizing a distributed work "
-    "scheduler, it regularly updates the job listings database and notifies users of new "
-    "opportunities. The application also features a user-friendly web interface for "
-    "manual queries and real-time results."
+    "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
+    "user-defined searches. Utilizing a distributed work \nscheduler, it regularly updates the job listings database "
+    "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
+    "\nmanual queries and real-time results."
 )
 
-# User inputs
 job_title = st.text_input("Job Title:")  # can add default value
 states = [
     '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
@@ -27,49 +38,47 @@ states = [
 location = st.selectbox(label="Location:", options=states)  # make empty string the default for entire U.S.
 company = st.text_input("Company:")  # can add default value
 
-# Search button
-if st.button("search"):
-    # if not job_title or not location:
-    #     st.error("Please fill out both Job Title and Location.")
-    # else:
-    #     # DynamoDB read operation
-    #     try:
-    #         dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
-    #         table = dynamodb.Table('Jobs')  # Using the 'Jobs' table name
-    #
-    #         # Define a filter expression based on user inputs
-    #         filter_expression = []
-    #         if job_title:
-    #             filter_expression.append(f"contains(title, :job_title)")
-    #         if location:
-    #             filter_expression.append(f"contains(location, :location)")
-    #         if company:
-    #             filter_expression.append(f"contains(company, :company)")
-    #
-    #         filter_expression = " and ".join(filter_expression)
-    #
-    #         expression_attribute_values = {
-    #             ':job_title': job_title,
-    #             ':location': location,
-    #             ':company': company,
-    #         }
-    #
-    #         response = table.scan(
-    #             FilterExpression=filter_expression,
-    #             ExpressionAttributeValues=expression_attribute_values
-    #         )
-    #
-    #         items = response.get('Items', [])
-    #
-    #         if items:
-    #             st.write("Job Listings found:")
-    #             for item in items:
-    #                 st.write(item)
-    #         else:
-    #             st.write("No job listings found.")
-    #     except NoCredentialsError:
-    #         st.error("No AWS credentials found.")
-    #     except PartialCredentialsError:
-    #         st.error("Incomplete AWS credentials.")
-    #     except Exception as e:
-    #         st.error(f"An error occurred: {e}")
+def read_jobs(job_title=None, location=None, company=None):
+    table = dynamodb.Table(table_name)
+    scan_kwargs = {}
+    filter_expression = None
+    if job_title:
+        filter_expression = Attr('job_title').eq(job_title)
+    if location:
+        filter_expression = filter_expression & Attr('location').eq(location) if filter_expression else Attr(
+            'location').eq(location)
+    if company:
+        filter_expression = filter_expression & Attr('company').eq(company) if filter_expression else Attr(
+            'company').eq(company)
+
+    if filter_expression:
+        scan_kwargs['FilterExpression'] = filter_expression
+
+    response = table.scan(**scan_kwargs)
+    return response.get('Items', [])
+
+if st.button("Search"):
+    if job_title or location or company:
+        # Send the search query to SQS
+        message = {
+            'job_title': job_title,
+            'location': location,
+            'company': company
+        }
+        sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=str(message)
+        )
+        st.write("Search query sent. Waiting for results...")
+
+        # Simulate waiting for results and then reading from DynamoDB
+        # In a real-world scenario, this should be replaced with logic to wait for processing to complete
+        time.sleep(5)  # Simulate delay for processing
+
+        results = read_jobs(job_title, location, company)
+        if results:
+            st.write("Results:", results)
+        else:
+            st.write("No matching jobs found.")
+    else:
+        st.error("Please enter at least one search criteria.")

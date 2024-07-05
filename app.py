@@ -1,6 +1,6 @@
 import streamlit as st
-import boto3
-from boto3.dynamodb.conditions import Attr
+# import boto3
+# from boto3.dynamodb.conditions import Attr
 
 st.title("JobScout")
 st.text(
