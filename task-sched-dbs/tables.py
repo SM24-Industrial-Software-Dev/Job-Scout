@@ -43,14 +43,17 @@ class Tables:
         self.executions = self.dynamodb.Table('executions')
         self.history = self.dynamodb.Table('history')
 
-    def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput):
+    def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput, global_secondary_indexes=None):
         try:
-            table = self.dynamodb.create_table(
-                TableName=table_name,
-                KeySchema=key_schema,
-                AttributeDefinitions=attribute_definitions,
-                ProvisionedThroughput=provisioned_throughput
-            )
+            table_params = {
+                'TableName': table_name,
+                'KeySchema': key_schema,
+                'AttributeDefinitions': attribute_definitions,
+                'ProvisionedThroughput': provisioned_throughput
+            }
+            if global_secondary_indexes:
+                table_params['GlobalSecondaryIndexes'] = global_secondary_indexes
+            table = self.dynamodb.create_table(**table_params)
             table.wait_until_exists()
             print(f"Table {table_name} created successfully.")
         except Exception as e:
@@ -69,14 +72,30 @@ class Tables:
             },
             'executions': {
                 'key_schema': [
-                    {'AttributeName': 'segment', 'KeyType': 'HASH'},
-                    {'AttributeName': 'next_exec_time', 'KeyType': 'RANGE'}
+                    {'AttributeName': 'task_id', 'KeyType': 'HASH'},
+                    {'AttributeName': 'segment', 'KeyType': 'RANGE'}
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'segment', 'AttributeType': 'N'},
                     {'AttributeName': 'next_exec_time', 'AttributeType': 'N'},
+                    {'AttributeName': 'task_id', 'AttributeType': 'N'}
                 ],
-                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5},
+                'global_secondary_indexes': [
+                    {
+                        'IndexName': 'next_exec_time-task_id-index',
+                        'KeySchema': [
+                            {'AttributeName': 'next_exec_time', 'KeyType': 'HASH'}
+                        ],
+                        'Projection': {
+                            'ProjectionType': 'ALL'
+                        },
+                        'ProvisionedThroughput': {
+                            'ReadCapacityUnits': 5,
+                            'WriteCapacityUnits': 5
+                        }
+                    }
+                ]
             },
             'history': {
                 'key_schema': [
@@ -94,7 +113,8 @@ class Tables:
             self.create_table(table_name,
                               table_config['key_schema'],
                               table_config['attribute_definitions'],
-                              table_config['provisioned_throughput'])
+                              table_config['provisioned_throughput'],
+                              table_config.get('global_secondary_indexes'))
 if __name__ == "__main__":
     print("here comes main")
     table = Tables()
