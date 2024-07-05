@@ -1,10 +1,11 @@
-from datetime import datetime, timedelta, timezone
-import boto3
 import time
-from Tables import Tables
-from Scheduler import Scheduler, Refresh, Notifs, Task
 import threading
 import random
+from datetime import datetime,timezone
+import boto3
+from tables import Refresh
+from Scheduler import Scheduler
+
 import isodate
 
 

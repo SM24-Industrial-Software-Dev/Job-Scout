@@ -1,8 +1,6 @@
-from typing import Optional
-from datetime import datetime
-
 import boto3
 from pydantic import BaseModel
+
 
 class Task(BaseModel):
     task_id: int
@@ -12,8 +10,10 @@ class Task(BaseModel):
     created: int
     type: str
 
+
 class Refresh(Task):
     last_refresh: int
+
 
 class Notifs(Task):
     user_id: int
@@ -24,17 +24,20 @@ class Notifs(Task):
     company: str
     location: str
 
+
 class HistoryData(BaseModel):
     task_id: int
     exec_time: int
     status: str
     retries: int
-    #last_update: int
+    # last_update: int
+
 
 class ExecutionsData(BaseModel):
     next_exec_time: int
     task_id: int
     segment: int
+
 
 class Tables:
     def __init__(self):
@@ -115,6 +118,8 @@ class Tables:
                               table_config['attribute_definitions'],
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
+
+
 if __name__ == "__main__":
     print("here comes main")
     table = Tables()
