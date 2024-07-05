@@ -1,7 +1,6 @@
-import sys
-from datetime import datetime, timezone
+from datetime import datetime
 import isodate
-from Tables import Tables, Task, Refresh, Notifs
+from tables import Tables, Task, Refresh, Notifs
 from botocore.exceptions import ClientError
 from boto3.dynamodb.conditions import Key
 
