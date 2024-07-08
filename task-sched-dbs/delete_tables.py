@@ -14,10 +14,10 @@ table_names = ['tasks', 'executions', 'history']
 for table_name in table_names:
     try:
         dynamodb.delete_table(TableName=table_name)
-        print(f"Table {table_name} deleted successfully.")
+        print(f"\033[91mTable {table_name} deleted successfully.\033[0m")
     except dynamodb.exceptions.ResourceNotFoundException:
         print(f"Table {table_name} not found.")
     except Exception as e:
         print(f"Error deleting table {table_name}: {e}")
-print("loading... 5 seconds remaining... ")
+print("\033[93mloading... 5 seconds remaining... \033[0m")
 time.sleep(5)
