@@ -9,13 +9,10 @@ from boto3.dynamodb.conditions import Key
 
 class Scheduler:
 
-    def __init__(self, min_seg: int = 1, max_seg: int = 2):
-        if min_seg >= max_seg:
-            raise ValueError("min_seg must be less than max_seg")
+    def __init__(self, max_seg: int = 2):
         self.table_set = Tables()
-        self.segment_min = min_seg
         self.segment_max = max_seg
-        self.segment = self.segment_min
+        self.segment = 0
         self.initialize_tables()
 
     def initialize_tables(self):
@@ -48,7 +45,7 @@ class Scheduler:
             else:
                 raise UnknownTaskTypeError(t)
             self.table_set.tasks.put_item(Item=task_item)
-            print("task " + str(t.task_id) + " added to tasks table!")
+            print("\033[94mtask " + str(t.task_id) + " added to tasks table!\033[0m")
             self.table_set.executions.put_item(
                 Item={
                     'task_id': t.task_id,
@@ -56,7 +53,7 @@ class Scheduler:
                     'segment': self.get_next_segment()
                 }
             )
-            print("task " + str(t.task_id) + " added to EXECUTIONS table!")
+            print("\033[94mtask " + str(t.task_id) + " added to EXECUTIONS table!\033[0m")
         except ClientError as e:
             error_code = e.response['Error']['Code']
             error_message = e.response['Error']['Message']
@@ -70,7 +67,7 @@ class Scheduler:
     def get_next_segment(self):
         self.segment += 1
         if self.segment >= self.segment_max:
-            self.segment = self.segment_min
+            self.segment = 1
         return self.segment
     
     def set_segment(self, segment:int):
@@ -78,9 +75,6 @@ class Scheduler:
 
     def set_max_segment(self, seg_max:int):
         self.segment_max=seg_max
-
-    def set_min_segment(self, seg_min:int):
-        self.segment_min=seg_min
          
     def query_executions_by_next_exec_time(self, next_exec_time):
         try:

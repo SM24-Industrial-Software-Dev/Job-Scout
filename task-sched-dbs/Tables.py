@@ -58,9 +58,9 @@ class Tables:
                 table_params['GlobalSecondaryIndexes'] = global_secondary_indexes
             table = self.dynamodb.create_table(**table_params)
             table.wait_until_exists()
-            print(f"Table {table_name} created successfully.")
+            print(f"\033[92mTable {table_name} created successfully.\033[0m")
         except Exception as e:
-            print(f"Error creating table {table_name}: {e}")
+            print(f"\033[91mError creating table {table_name}: {e}\033[0m")
 
     def initialize_tables(self):
         tables = {
