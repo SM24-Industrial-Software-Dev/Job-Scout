@@ -98,11 +98,15 @@ class User(BaseModel):
     id: str
     email: EmailStr
     name: str
+    preferred_job_type: Optional[str] = None
+    preferred_location: Optional[str] = None
 
 class Task(BaseModel):
     id: str
     title: str
     description: Optional[str] = None
+    job_type: str
+    location: str
 
 class EmailSchema(BaseModel):
     subject: str
@@ -130,8 +134,6 @@ def send_email(subject: str, recipients: List[str], body: str):
 @app.post("/register/")
 async def register_user(user: User):
     try:
-        # Check if table exists
-        users_table.load()
         users_table.put_item(Item=user.dict())
         return {"message": "User registered successfully."}
     except ClientError as e:
@@ -142,8 +144,6 @@ async def register_user(user: User):
 @app.post("/tasks/")
 async def create_task_and_notify(task: Task, background_tasks: BackgroundTasks):
     try:
-        # Check if table exists
-        tasks_table.load()
         tasks_table.put_item(Item=task.dict())
     except ClientError as e:
         raise HTTPException(status_code=500, detail=e.response['Error']['Message'])
@@ -153,7 +153,15 @@ async def create_task_and_notify(task: Task, background_tasks: BackgroundTasks):
     try:
         response = users_table.scan()
         users = response.get('Items', [])
-        recipient_emails = [user['email'] for user in users]
+
+        # Filter users based on preferences
+        interested_users = [
+            user for user in users
+            if (user.get('preferred_job_type') == task.job_type or user.get('preferred_job_type') is None) and
+               (user.get('preferred_location') == task.location or user.get('preferred_location') is None)
+        ]
+        
+        recipient_emails = [user['email'] for user in interested_users]
 
         email = EmailSchema(
             subject=f"New Task Created: {task.title}",
