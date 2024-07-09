@@ -5,11 +5,13 @@ from datetime import datetime,timezone
 import boto3
 from Tables import Refresh
 from Scheduler import Scheduler
+from sqs_impl.SQSImpl import Impl
+from sqs_impl.AWS_setup import setup_aws_resources
 
 import isodate
 
 class Executer:
-    def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int):
+    def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int, sqs_impl: Impl):
         self.dynamodb = dynamodb
         self.segment_start = segment_start
         #print("min seg: " + str(segment_start))
@@ -19,6 +21,7 @@ class Executer:
         self.history_table = self.dynamodb.Table('history')
         self.tasks_table = self.dynamodb.Table('tasks')
         self.exec_id = exec_id
+        self.sqs_impl = sqs_impl
 
     def get_tasks(self, current_time):
         tasks = []
@@ -48,6 +51,9 @@ class Executer:
             self.publish_to_kafka(task_id)
             self.add_to_history_data(task_id, current_time, "success", 1)
             self.update_next_execution(task_id, current_time, segment)
+            
+            task_type = self.get_task_type(task_id)
+            self.send_sqs_message(task_id, task_type)
 
             #print(task)
 
@@ -122,6 +128,64 @@ class Executer:
     def publish_to_kafka(self, task):
         # Placeholder logic for publishing task to Kafka
         print(f"\033[93mPublishing task {task} to Kafka\033[0m")
+    
+    def send_sqs_message(self, task_id, task_type):
+        message_body = {
+            'task_id': task_id,
+            'task_type': task_type,
+            'exec_id': self.exec_id,
+            'timestamp': int(datetime.now().timestamp())
+        }
+        
+        if task_type == 'notif':
+            task_details = self.get_notif_details(task_id)
+            message_body.update(task_details)
+        elif task_type == 'refresh':
+            print("we be refreshin' doe")
+        else:
+            print("uh oh- bad type")
+        
+        self.sqs_impl.send_message(message_body, task_type)
+
+    def get_notif_details(self, task_id):
+        response = self.tasks_table.get_item(
+            Key={'task_id': task_id}
+        )
+        task = response['Item']
+        user_id = task.get('user_id')
+        email = task.get('email')
+        
+        # Optional fields
+        job_id = task.get('job_id')
+        title = task.get('title')
+        description = task.get('description')
+        company = task.get('company')
+        location = task.get('location')
+        
+        notif_details = {
+            'user_id': user_id,
+            'email': email,
+            'job_id': job_id,
+            'title': title,
+            'description': description,
+            'company': company,
+            'location': location
+        }
+        
+        # Remove keys with None values
+        notif_details = {k: v for k, v in notif_details.items() if v is not None}
+        
+        return notif_details
+    
+    def get_task_type(self, task_id):
+        # Example logic to determine task type based on task_id
+        # You need to implement your own logic based on your task_id patterns
+        response = self.tasks_table.get_item(
+            Key={'task_id': task_id}
+        )
+        task = response['Item']
+        return task['type']
+
 
 
 class Master:
@@ -132,7 +196,11 @@ class Master:
         self.executer_count = (schedule_instances + 3) // 4  # This ensures ceil(schedule_instances / 4)
         if self.executer_count < 1:
             self.executer_count = 1
-        
+
+        refresh_topic_arn = 'arn:aws:sns:us-east-1:339712802500:refresh-topic'
+        notif_topic_arn = 'arn:aws:sns:us-east-1:339712802500:notif-topic'
+        self.sqs_impl = Impl(refresh_topic_arn, notif_topic_arn)
+
         self.executers = []
         
         # Create Executer instances with assigned ranges
@@ -142,7 +210,7 @@ class Master:
             max_seg = min(min_seg + 3, schedule_instances)
             
             # Create Executer instance and add to list
-            self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number()))
+            self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number(), self.sqs_impl))
         
 
     def run(self):
@@ -175,6 +243,8 @@ def run_master_in_background(master):
     master.run()
 
 if __name__ == "__main__":
+    print("\033[92mAWS initializing...\033[0m")
+    setup_aws_resources()
     print("\033[92mStarting Master...\033[0m")
     master = Master(18)
     sched = master.scheduler
