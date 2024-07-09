@@ -1,32 +1,41 @@
-from datetime import datetime, timedelta, timezone
-import boto3
 import time
-from Tables import Tables
-from Scheduler import Scheduler, Refresh, Notifs, Task
 import threading
 import random
+from datetime import datetime,timezone
+import boto3
+from Tables import Refresh
+from Scheduler import Scheduler
+
+import isodate
 
 class Executer:
-    def __init__(self, dynamodb, segment_start: int, segment_end: int):
+    def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int):
         self.dynamodb = dynamodb
         self.segment_start = segment_start
-        print("min seg: " + str(segment_start))
+        #print("min seg: " + str(segment_start))
         self.segment_end = segment_end
-        print("max seg: " + str(segment_end))
+        #print("max seg: " + str(segment_end))
         self.executions_table = self.dynamodb.Table('executions')
         self.history_table = self.dynamodb.Table('history')
+        self.tasks_table = self.dynamodb.Table('tasks')
+        self.exec_id = exec_id
 
     def get_tasks(self, current_time):
         tasks = []
         for segment in range(self.segment_start, self.segment_end + 1):
-            print ("checking segment: " + str(segment))
-            response = self.executions_table.query(
-                KeyConditionExpression=boto3.dynamodb.conditions.Key('segment').eq(segment) &
-                                       boto3.dynamodb.conditions.Key('next_exec_time').eq(current_time)
-            )
-            for item in response['Items']:
-                task_id = int(item['task_id'])
-                tasks.append(task_id)
+            #print ("checking segment: " + str(segment))
+            try:
+                response = self.executions_table.query(
+                    IndexName='next_exec_time-task_id-index',
+                    KeyConditionExpression=boto3.dynamodb.conditions.Key('next_exec_time').eq(current_time),
+                    FilterExpression=boto3.dynamodb.conditions.Attr('segment').eq(segment)
+                )
+                for item in response['Items']:
+                    task_id = int(item['task_id'])
+                    seg = int(item['segment'])
+                    tasks.append((task_id, seg))
+            except Exception as e:
+                print(f"Error querying tasks for segment {segment}: {e}")
         return tasks
 
     def process_tasks(self, current_time):
@@ -34,32 +43,65 @@ class Executer:
         #print("hey" + str(current_time))
         #if len(tasks) > 0:
             #print("hello")
-        for task in tasks:
-            self.publish_to_kafka(task)
-            self.add_to_history_data(task, current_time, "success", 1)
+        for task_id, segment in tasks:
+            print("\033[95mexecuter: " + str(self.exec_id) + " | time: " + str(current_time) + "\033[0m")
+            self.publish_to_kafka(task_id)
+            self.add_to_history_data(task_id, current_time, "success", 1)
+            self.update_next_execution(task_id, current_time, segment)
 
             #print(task)
 
             ##In future, make it so we can just update the next_exec_time and not delete it##
             #self.delete_execution_from_dynamodb(task, current_time)
             
-    
-    def delete_execution_from_dynamodb(self, task_id, next_exec_time):
+    def update_next_execution(self, task_id, current_time, segment):
+        # Retrieve the interval for the task from the tasks table
+        response = self.tasks_table.get_item(
+            Key={'task_id': task_id}
+        )
+        task = response['Item']
+        interval = task['interval']
+
+        # Parse the interval and add it to the current_time to get the new next_exec_time
+        new_next_exec_time = self.calculate_next_exec_time(current_time, interval)
+
+        # Update the next_exec_time in the executions table
         try:
-            response = self.executions_table.scan(
-                FilterExpression=boto3.dynamodb.conditions.Attr('task_id').eq(task_id) &
-                                 boto3.dynamodb.conditions.Attr('next_exec_time').eq(next_exec_time)
+            # Query using GSI to retrieve items based on task_id
+            response = self.executions_table.get_item(
+                Key={
+                    'segment': segment,
+                    'task_id': task_id
+                }
             )
-            for item in response['Items']:
-                self.executions_table.delete_item(
+            if 'Item' in response:
+                item = response['Item']
+                # Update the item using UpdateItem operation
+                response = self.executions_table.update_item(
                     Key={
-                        'next_exec_time': item['next_exec_time'],
-                        'segment': item['segment']
-                    }
+                        'segment': segment,
+                        'task_id': task_id
+                    },
+                    UpdateExpression="SET next_exec_time = :val",
+                    ExpressionAttributeValues={
+                        ':val': new_next_exec_time
+                    },
+                    ReturnValues="UPDATED_NEW"
                 )
-                print(f"Deleted task_id={task_id}, next_exec_time={next_exec_time} from executions table.")
+                print(f"\033[93mUpdate for task_id={task_id} in executions table complete.\033[0m")
+            else:
+                print(f"Item for task_id={task_id} and segment={segment} not found.")
+
         except Exception as e:
-            print(f"Error deleting task_id={task_id}, next_exec_time={next_exec_time}: {e}")
+            print(f"Error updating next_exec_time for task_id={task_id}: {e}")
+        
+    def calculate_next_exec_time(self, current_time, interval):
+        # Parse the interval (assuming it's in ISO 8601 format like 'PT1M')
+        duration = isodate.parse_duration(interval)
+        
+        # Calculate the new next_exec_time as Unix timestamp
+        new_next_exec_time = current_time + duration.total_seconds()
+        return int(new_next_exec_time)
     
     def add_to_history_data(self, task_id, exec_time, status, retries):
         # Convert task_id to int if necessary
@@ -75,17 +117,18 @@ class Executer:
                 'retries': retries
             }
         )
-        print(f"Added task_id={task_id} to historydata table with status '{status}' and {retries} retries.")
+        print(f"\033[93mAdded task_id={task_id} to historydata table with status '{status}' and {retries} retries.\033[0m")
 
     def publish_to_kafka(self, task):
         # Placeholder logic for publishing task to Kafka
-        print(f"Publishing task {task} to Kafka")
+        print(f"\033[93mPublishing task {task} to Kafka\033[0m")
 
 
 class Master:
     def __init__(self, schedule_instances:int = 1):
-        self.scheduler = Scheduler()
+        self.scheduler = Scheduler(schedule_instances+1)
         self.dyna = self.scheduler.table_set.dynamodb
+        self.exec_number = 0
         self.executer_count = (schedule_instances + 3) // 4  # This ensures ceil(schedule_instances / 4)
         if self.executer_count < 1:
             self.executer_count = 1
@@ -99,7 +142,7 @@ class Master:
             max_seg = min(min_seg + 3, schedule_instances)
             
             # Create Executer instance and add to list
-            self.executers.append(Executer(self.dyna, min_seg, max_seg))
+            self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number()))
         
 
     def run(self):
@@ -123,13 +166,17 @@ class Master:
         dt = dt.replace(second=0, microsecond=0)
         # Convert to UNIX timestamp
         return int(dt.timestamp())
+    
+    def get_next_exec_number(self) -> int:
+        self.exec_number += 1
+        return self.exec_number
 
 def run_master_in_background(master):
     master.run()
 
 if __name__ == "__main__":
-    print("Starting Master...")
-    master = Master()
+    print("\033[92mStarting Master...\033[0m")
+    master = Master(18)
     sched = master.scheduler
     
     # Create a thread for running master.run() in the background
@@ -138,9 +185,10 @@ if __name__ == "__main__":
     master_thread.start()
 
     # Now continue with your main scheduler logic, receiving tasks and updating databases
-    print("Running Scheduler and Receiving Tasks...")
+    print("\033[92mRunning Scheduler and Receiving Tasks...\033[0m")
     while True:
         rando = random.randint(1,10000)
+        print("\033[96mnow inserting: " + str(rando) + "\033[0m")
         # Your scheduler logic to receive new tasks and update databases
         new_task = Refresh(
             task_id=rando,
@@ -152,5 +200,5 @@ if __name__ == "__main__":
             type = "refresh"
         )
         sched.add_task(new_task)
-        time.sleep(30)
+        time.sleep(10)
         
