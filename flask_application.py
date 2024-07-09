@@ -3,7 +3,6 @@ import subprocess
 import psutil
 from flask import Flask, redirect, url_for, session
 from authlib.integrations.flask_client import OAuth
-import requests #changed
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
@@ -49,17 +48,6 @@ def authorize():
     resp = google.get('https://openidconnect.googleapis.com/v1/userinfo')
     user_info = resp.json()
     session['user'] = user_info
-    
-    fastapi_url = 'http://localhost:8000/register/'
-    user_data = {
-        "id": user_info["sub"],
-        "email": user_info["email"],
-        "name": user_info["name"]
-    }
-    request = requests.post(fastapi_url, json=user_data)
-    if request.status_code !=200:
-        print(f"Failed to register user: {request.text}")
-
     return redirect('http://localhost:8501')
 
 @app.route('/streamlit')
@@ -82,5 +70,4 @@ def run_streamlit():
     return redirect('http://localhost:8501')
 
 if __name__ == '__main__':
-    app.run('0.0.0.0', int(os.environ.get('PORT', 5000)), debug=True)
-    
+    app.run('localhost', 5000, debug=True)
