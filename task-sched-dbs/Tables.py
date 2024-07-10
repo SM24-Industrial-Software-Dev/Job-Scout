@@ -1,16 +1,26 @@
 import boto3
-from datetime import datetime
-from pydantic import BaseModel
+from datetime import datetime,timezone
+# pylint: disable=no-name-in-module
+# pylint: disable=no-self-argument
+from pydantic import BaseModel, Field
 
+def get_current_time() -> int:
+        # Get current time as an integer timestamp rounded to the nearest minute
+        now = datetime.now(timezone.utc)
+        return get_unix_timestamp_by_min(now)
+
+def get_unix_timestamp_by_min(dt: datetime) -> int:
+    # Set seconds and microseconds to zero
+    dt = dt.replace(second=0, microsecond=0)
+    # Convert to UNIX timestamp
+    return int(dt.timestamp())
 
 class Task(BaseModel):
     task_id: int
-    recurring: bool
     interval: str
     retries: int
-    created: int=int(datetime.now().timestamp())
+    created: int= Field(default_factory=get_current_time) #int(datetime.now().timestamp()) #Field(default_factory=get_current_time)
     type: str
-
 
 class Refresh(Task):
     last_refresh: int
@@ -119,6 +129,7 @@ class Tables:
                               table_config['attribute_definitions'],
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
+            
 
 
 if __name__ == "__main__":

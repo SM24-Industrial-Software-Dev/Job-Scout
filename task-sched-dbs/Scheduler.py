@@ -22,7 +22,6 @@ class Scheduler:
         try:
             task_item={
                 'task_id': t.task_id,
-                'recurring': t.recurring,
                 'interval': t.interval,
                 'retries': t.retries,
                 'created': self.get_unix_timestamp_by_min(datetime.fromtimestamp(t.created)),
