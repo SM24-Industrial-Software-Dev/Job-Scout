@@ -1,4 +1,5 @@
 import boto3
+from datetime import datetime
 from pydantic import BaseModel
 
 
@@ -7,7 +8,7 @@ class Task(BaseModel):
     recurring: bool
     interval: str
     retries: int
-    created: int
+    created: int=int(datetime.now().timestamp())
     type: str
 
 
@@ -18,11 +19,11 @@ class Refresh(Task):
 class Notifs(Task):
     user_id: int
     email: str
-    job_id: int
-    title: str
-    description: str
-    company: str
-    location: str
+    job_id: int = None
+    title: str = None
+    description: str = None
+    company: str = None
+    location: str = None
 
 
 class HistoryData(BaseModel):

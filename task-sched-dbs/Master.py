@@ -4,7 +4,7 @@ import random
 import json
 from datetime import datetime,timezone
 import boto3
-from Tables import Refresh
+from Tables import Refresh, Task
 from Scheduler import Scheduler
 from SQS_Impl import Impl
 
@@ -203,6 +203,9 @@ class Master:
             # Create Executer instance and add to list
             self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number(), self.sqs_impl))
         
+    def add_task(self, task: Task) -> int:
+        self.scheduler.add_task(task)
+        return Task.task_id
 
     def run(self):
         while True:
@@ -236,7 +239,6 @@ def run_master_in_background(master):
 if __name__ == "__main__":
     print("\033[92mStarting Master...\033[0m")
     master = Master(18)
-    sched = master.scheduler
     
     # Create a thread for running master.run() in the background
     master_thread = threading.Thread(target=run_master_in_background, args=(master,))
@@ -258,6 +260,6 @@ if __name__ == "__main__":
             last_refresh=0,
             type = "refresh"
         )
-        sched.add_task(new_task)
+        master.add_task(new_task)
         time.sleep(10)
         
