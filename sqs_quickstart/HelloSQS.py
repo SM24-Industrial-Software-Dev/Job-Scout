@@ -36,7 +36,7 @@ class HelloSQS:
 
 # Example usage:
 if __name__ == "__main__":
-    sqs_client = HelloSQS('HelloWorldQueue')
+    sqs_client = HelloSQS('refresh-queue')
     
     # Send a message
     message_body = "Hello, SQS!"
@@ -46,4 +46,4 @@ if __name__ == "__main__":
     time.sleep(1)
     
     # Receive messages
-    sqs_client.receive_messages()
+    sqs_client.receive_messages() 
