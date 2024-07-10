@@ -1,6 +1,10 @@
 import streamlit as st
-# import boto3
-# from boto3.dynamodb.conditions import Attr
+import boto3
+import json
+
+# Initialize the SQS client
+sqs = boto3.client('sqs', region_name='us-east-2')
+queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
 
 st.title("JobScout")
 st.text(
@@ -20,45 +24,22 @@ states = [
     'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
     'Wisconsin', 'Wyoming'
 ]
-# Should this be a multiselect or selectbox?
 location = st.selectbox(label="Location:", options=states) # make empty string the default for entire U.S.
 company = st.text_input("Company:") # can add default value
 
-st.button("search") # job title and location - also make sure they are filled out
-#
-# # Initialize a DynamoDB resource
-# dynamodb = boto3.resource('dynamodb', region_name='us-west-2')
-#
-# # Replace 'JobListings' with your DynamoDB table name
-# table_name = 'JobListings'
-#
-#
-# def read_jobs(job_title=None, location=None, company=None):
-#     table = dynamodb.Table(table_name)
-#     scan_kwargs = {}
-#     filter_expression = None
-#     if job_title:
-#         filter_expression = Attr('job_title').eq(job_title)
-#     if location:
-#         filter_expression = filter_expression & Attr('location').eq(location) if filter_expression else Attr(
-#             'location').eq(location)
-#     if company:
-#         filter_expression = filter_expression & Attr('company').eq(company) if filter_expression else Attr(
-#             'company').eq(company)
-#
-#     if filter_expression:
-#         scan_kwargs['FilterExpression'] = filter_expression
-#
-#     response = table.scan(**scan_kwargs)
-#     return response.get('Items', [])
-#
-#
-# if st.button("Search"):
-#     if job_title or location or company:
-#         results = read_jobs(job_title, location, company)
-#         if results:
-#             st.write("Results:", results)
-#         else:
-#             st.write("No matching jobs found.")
-#     else:
-#         st.error("Please enter at least one search criteria.")
+if st.button("search"):
+    if job_title or location or company:
+        # Send message to SQS
+        response = sqs.send_message(
+            QueueUrl=queue_url,
+            MessageBody=(
+                json.dumps({
+                    'job_title': job_title,
+                    'location': location,
+                    'company': company
+                })
+            )
+        )
+        st.success('Search request sent! Check your results shortly.')
+    else:
+        st.error("Please fill out all fields before searching.")
