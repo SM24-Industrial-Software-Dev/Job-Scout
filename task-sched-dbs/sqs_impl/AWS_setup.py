@@ -1,5 +1,5 @@
 import boto3
-import json
+import json 
 
 def setup_aws_resources():
     sns_client = boto3.client('sns')

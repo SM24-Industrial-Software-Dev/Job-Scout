@@ -1,12 +1,12 @@
 import time
 import threading
 import random
+import json
 from datetime import datetime,timezone
 import boto3
 from Tables import Refresh
 from Scheduler import Scheduler
-from sqs_impl.SQSImpl import Impl
-from sqs_impl.AWS_setup import setup_aws_resources
+from SQS_Impl import Impl
 
 import isodate
 
@@ -14,9 +14,7 @@ class Executer:
     def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int, sqs_impl: Impl):
         self.dynamodb = dynamodb
         self.segment_start = segment_start
-        #print("min seg: " + str(segment_start))
         self.segment_end = segment_end
-        #print("max seg: " + str(segment_end))
         self.executions_table = self.dynamodb.Table('executions')
         self.history_table = self.dynamodb.Table('history')
         self.tasks_table = self.dynamodb.Table('tasks')
@@ -26,7 +24,6 @@ class Executer:
     def get_tasks(self, current_time):
         tasks = []
         for segment in range(self.segment_start, self.segment_end + 1):
-            #print ("checking segment: " + str(segment))
             try:
                 response = self.executions_table.query(
                     IndexName='next_exec_time-task_id-index',
@@ -43,9 +40,6 @@ class Executer:
 
     def process_tasks(self, current_time):
         tasks = self.get_tasks(current_time)
-        #print("hey" + str(current_time))
-        #if len(tasks) > 0:
-            #print("hello")
         for task_id, segment in tasks:
             print("\033[95mexecuter: " + str(self.exec_id) + " | time: " + str(current_time) + "\033[0m")
             self.publish_to_kafka(task_id)
@@ -54,11 +48,6 @@ class Executer:
             
             task_type = self.get_task_type(task_id)
             self.send_sqs_message(task_id, task_type)
-
-            #print(task)
-
-            ##In future, make it so we can just update the next_exec_time and not delete it##
-            #self.delete_execution_from_dynamodb(task, current_time)
             
     def update_next_execution(self, task_id, current_time, segment):
         # Retrieve the interval for the task from the tasks table
@@ -141,11 +130,15 @@ class Executer:
             task_details = self.get_notif_details(task_id)
             message_body.update(task_details)
         elif task_type == 'refresh':
-            print("we be refreshin' doe")
+            print("this is a refresh")
         else:
             print("uh oh- bad type")
         
-        self.sqs_impl.send_message(message_body, task_type)
+        self.sqs_impl.send_message(task_type, json.dumps(message_body))
+        messages = self.sqs_impl.receive_messages(task_type)
+        for message in messages:
+                print(f"Received message: {message['Body']}")
+                self.sqs_impl.delete_message(message['ReceiptHandle'], task_type)
 
     def get_notif_details(self, task_id):
         response = self.tasks_table.get_item(
@@ -197,9 +190,7 @@ class Master:
         if self.executer_count < 1:
             self.executer_count = 1
 
-        refresh_topic_arn = 'arn:aws:sns:us-east-1:339712802500:refresh-topic'
-        notif_topic_arn = 'arn:aws:sns:us-east-1:339712802500:notif-topic'
-        self.sqs_impl = Impl(refresh_topic_arn, notif_topic_arn)
+        self.sqs_impl = Impl()
 
         self.executers = []
         
@@ -243,8 +234,6 @@ def run_master_in_background(master):
     master.run()
 
 if __name__ == "__main__":
-    print("\033[92mAWS initializing...\033[0m")
-    setup_aws_resources()
     print("\033[92mStarting Master...\033[0m")
     master = Master(18)
     sched = master.scheduler
