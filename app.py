@@ -4,7 +4,7 @@ import json
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
+queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
 
 st.title("JobScout")
 st.text(
