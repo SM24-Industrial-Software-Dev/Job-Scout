@@ -1,29 +1,29 @@
 import time
 import threading
 import random
+import json
 from datetime import datetime,timezone
 import boto3
 from Tables import Refresh
 from Scheduler import Scheduler
+from SQS_Impl import Impl
 
 import isodate
 
 class Executer:
-    def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int):
+    def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int, sqs_impl: Impl):
         self.dynamodb = dynamodb
         self.segment_start = segment_start
-        #print("min seg: " + str(segment_start))
         self.segment_end = segment_end
-        #print("max seg: " + str(segment_end))
         self.executions_table = self.dynamodb.Table('executions')
         self.history_table = self.dynamodb.Table('history')
         self.tasks_table = self.dynamodb.Table('tasks')
         self.exec_id = exec_id
+        self.sqs_impl = sqs_impl
 
     def get_tasks(self, current_time):
         tasks = []
         for segment in range(self.segment_start, self.segment_end + 1):
-            #print ("checking segment: " + str(segment))
             try:
                 response = self.executions_table.query(
                     IndexName='next_exec_time-task_id-index',
@@ -40,19 +40,14 @@ class Executer:
 
     def process_tasks(self, current_time):
         tasks = self.get_tasks(current_time)
-        #print("hey" + str(current_time))
-        #if len(tasks) > 0:
-            #print("hello")
         for task_id, segment in tasks:
             print("\033[95mexecuter: " + str(self.exec_id) + " | time: " + str(current_time) + "\033[0m")
             self.publish_to_kafka(task_id)
             self.add_to_history_data(task_id, current_time, "success", 1)
             self.update_next_execution(task_id, current_time, segment)
-
-            #print(task)
-
-            ##In future, make it so we can just update the next_exec_time and not delete it##
-            #self.delete_execution_from_dynamodb(task, current_time)
+            
+            task_type = self.get_task_type(task_id)
+            self.send_sqs_message(task_id, task_type)
             
     def update_next_execution(self, task_id, current_time, segment):
         # Retrieve the interval for the task from the tasks table
@@ -122,6 +117,68 @@ class Executer:
     def publish_to_kafka(self, task):
         # Placeholder logic for publishing task to Kafka
         print(f"\033[93mPublishing task {task} to Kafka\033[0m")
+    
+    def send_sqs_message(self, task_id, task_type):
+        message_body = {
+            'task_id': task_id,
+            'task_type': task_type,
+            'exec_id': self.exec_id,
+            'timestamp': int(datetime.now().timestamp())
+        }
+        
+        if task_type == 'notif':
+            task_details = self.get_notif_details(task_id)
+            message_body.update(task_details)
+        elif task_type == 'refresh':
+            print("this is a refresh")
+        else:
+            print("uh oh- bad type")
+        
+        self.sqs_impl.send_message(task_type, json.dumps(message_body))
+        messages = self.sqs_impl.receive_messages(task_type)
+        for message in messages:
+                print(f"Received message: {message['Body']}")
+                self.sqs_impl.delete_message(message['ReceiptHandle'], task_type)
+
+    def get_notif_details(self, task_id):
+        response = self.tasks_table.get_item(
+            Key={'task_id': task_id}
+        )
+        task = response['Item']
+        user_id = task.get('user_id')
+        email = task.get('email')
+        
+        # Optional fields
+        job_id = task.get('job_id')
+        title = task.get('title')
+        description = task.get('description')
+        company = task.get('company')
+        location = task.get('location')
+        
+        notif_details = {
+            'user_id': user_id,
+            'email': email,
+            'job_id': job_id,
+            'title': title,
+            'description': description,
+            'company': company,
+            'location': location
+        }
+        
+        # Remove keys with None values
+        notif_details = {k: v for k, v in notif_details.items() if v is not None}
+        
+        return notif_details
+    
+    def get_task_type(self, task_id):
+        # Example logic to determine task type based on task_id
+        # You need to implement your own logic based on your task_id patterns
+        response = self.tasks_table.get_item(
+            Key={'task_id': task_id}
+        )
+        task = response['Item']
+        return task['type']
+
 
 
 class Master:
@@ -132,7 +189,9 @@ class Master:
         self.executer_count = (schedule_instances + 3) // 4  # This ensures ceil(schedule_instances / 4)
         if self.executer_count < 1:
             self.executer_count = 1
-        
+
+        self.sqs_impl = Impl()
+
         self.executers = []
         
         # Create Executer instances with assigned ranges
@@ -142,7 +201,7 @@ class Master:
             max_seg = min(min_seg + 3, schedule_instances)
             
             # Create Executer instance and add to list
-            self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number()))
+            self.executers.append(Executer(self.dyna, min_seg, max_seg, self.get_next_exec_number(), self.sqs_impl))
         
 
     def run(self):
