@@ -1,6 +1,7 @@
 import streamlit as st
 import boto3
 import json
+import requests
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
