@@ -7,7 +7,6 @@ import boto3
 from Tables import Refresh, Task
 from Scheduler import Scheduler
 from SQS_Impl import Impl
-
 import isodate
 
 class Executer:
@@ -56,6 +55,7 @@ class Executer:
         )
         task = response['Item']
         interval = task['interval']
+        created = task['created']
 
         # Parse the interval and add it to the current_time to get the new next_exec_time
         new_next_exec_time = self.calculate_next_exec_time(current_time, interval)
@@ -205,7 +205,7 @@ class Master:
         
     def add_task(self, task: Task) -> int:
         self.scheduler.add_task(task)
-        return Task.task_id
+        return task.task_id
 
     def run(self):
         while True:
@@ -253,7 +253,6 @@ if __name__ == "__main__":
         # Your scheduler logic to receive new tasks and update databases
         new_task = Refresh(
             task_id=rando,
-            recurring=True,
             interval="PT1M",
             retries=3,
             created=int(datetime.now().timestamp()),
