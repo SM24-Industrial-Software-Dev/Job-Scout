@@ -32,21 +32,30 @@ if st.button("search"):
     if job_title or location or company:
         # Prepare the job search data
         job_search_data = {
-            'job_title': job_title,
-            'location': location,
-            'company': company
+            'task_id': 1,  # Example task_id, adjust as necessary
+            'interval': "PT1M",  # Example interval, adjust as necessary
+            'retries': 3,  # Example retries, adjust as necessary
+            'created': 1625247600,  # Example timestamp, adjust as necessary
+            'type': "notif",  # Example type, adjust as necessary
+            'user_id': 1,
+            'email': "email",
+            'job_id': None,
+            'title': job_title,
+            'description': None,
+            'company': company,
+            'location': location
         }
 
         try:
             # Send message to SQS
-            sqs_response = sqs.send_message(
-                QueueUrl=queue_url,
-                MessageBody=json.dumps(job_search_data)
-            )
+            #sqs_response = sqs.send_message(
+            #    QueueUrl=queue_url,
+            #    MessageBody=json.dumps(job_search_data)
+            #)
 
             # Send job search data to FastAPI endpoint
             fastapi_response = requests.post(
-                'http://localhost:8080/add_job_search/',  # Ensure this URL is correct
+                'http://localhost:8000/add_search/',  # Ensure this URL is correct
                 json=job_search_data
             )
 
