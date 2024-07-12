@@ -28,6 +28,9 @@ states = [
 location = st.selectbox(label="Location:", options=states) # make empty string the default for entire U.S.
 company = st.text_input("Company:") # can add default value
 
+notifications = ['', 'hourly', 'daily', 'weekly']
+notification_frequency = st.selectbox(label="Select how often you would like to be notified of new job listings:", options=notifications)
+
 if st.button("search"):
     if job_title or location or company:
         # Send message to SQS
