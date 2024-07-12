@@ -8,6 +8,7 @@ from Tables import Refresh, Task
 from Scheduler import Scheduler
 from SQS_Impl import Impl
 import isodate
+from decimal import Decimal
 
 class Executer:
     def __init__(self, dynamodb, segment_start: int, segment_end: int, exec_id: int, sqs_impl: Impl):
@@ -41,7 +42,7 @@ class Executer:
         tasks = self.get_tasks(current_time)
         for task_id, segment in tasks:
             print("\033[95mexecuter: " + str(self.exec_id) + " | time: " + str(current_time) + "\033[0m")
-            self.publish_to_kafka(task_id)
+            #self.publish_to_kafka(task_id)
             self.add_to_history_data(task_id, current_time, "success", 1)
             self.update_next_execution(task_id, current_time, segment)
             
@@ -134,7 +135,7 @@ class Executer:
         else:
             print("uh oh- bad type")
         
-        self.sqs_impl.send_message(task_type, json.dumps(message_body))
+        self.sqs_impl.send_message(task_type, json.dumps(message_body, cls=DecimalEncoder))
         messages = self.sqs_impl.receive_messages(task_type)
         for message in messages:
                 print(f"Received message: {message['Body']}")
@@ -232,6 +233,12 @@ class Master:
     def get_next_exec_number(self) -> int:
         self.exec_number += 1
         return self.exec_number
+    
+class DecimalEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, Decimal):
+            return float(obj)
+        return super(DecimalEncoder, self).default(obj)
 
 def run_master_in_background(master):
     master.run()

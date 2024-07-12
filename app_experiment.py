@@ -31,11 +31,12 @@ company = st.text_input("Company:")  # can add default value
 if st.button("search"):
     if job_title or location or company:
         # Prepare the job search data
+
+        ##HARDCODED RIGHT NOW -- NEED TO UPDATE
         job_search_data = {
             'task_id': 1,  # Example task_id, adjust as necessary
             'interval': "PT1M",  # Example interval, adjust as necessary
             'retries': 3,  # Example retries, adjust as necessary
-            'created': 1625247600,  # Example timestamp, adjust as necessary
             'type': "notif",  # Example type, adjust as necessary
             'user_id': 1,
             'email': "email",
