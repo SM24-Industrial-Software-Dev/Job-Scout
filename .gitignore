@@ -1,0 +1,9 @@
+### Mac OS ###
+.DS_Store
+>>>>>>> 1-kafka
+
+.idea/
+.venv/
+venv/
+js-venv2/
+js-3
