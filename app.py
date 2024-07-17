@@ -28,8 +28,8 @@ states = [
 location = st.selectbox(label="Location:", options=states) # make empty string the default for entire U.S.
 company = st.text_input("Company:") # can add default value
 
-notifications = ['', 'hourly', 'daily', 'weekly']
-notification_frequency = st.selectbox(label="Select how often you would like to be notified of new job listings:", options=notifications)
+# notifications = ['', 'hourly', 'daily', 'weekly']
+# notification_frequency = st.selectbox(label="Select how often you would like to be notified of new job listings:", options=notifications)
 
 if st.button("search"):
     if job_title or location or company:
@@ -46,4 +46,4 @@ if st.button("search"):
         )
         st.success('Search request sent! Check your results shortly.')
     else:
-        st.error("Please fill out all fields before searching.")
+        st.error("Please fill out a field before searching.")
