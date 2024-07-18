@@ -3,6 +3,8 @@ import boto3
 import json
 import requests
 
+#IMPORTANT INFO: To run using localhost use streamlit run logged_in_app.py --server.port 8501
+
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
@@ -35,19 +37,6 @@ is_logged_in_url = "http://localhost:5000/is_logged_in"
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
 
-# Function to check login status
-def check_login_status():
-    response = requests.get(is_logged_in_url)
-    if response.status_code == 200:
-        data = response.json()
-        st.session_state.button_login_pressed = data['logged_in']
-
-# Function to handle login press
-def handle_button_login_press():
-    st.session_state.button_login_pressed = True
-    st.markdown(f'<meta http-equiv="refresh" content="0; url={login_url}">', unsafe_allow_html=True)
-    check_login_status()
-
 # Function to handle logout press
 def handle_button_logout_press():
     st.session_state.button_login_pressed = False
@@ -56,12 +45,7 @@ def handle_button_logout_press():
 # Sidebar for floating menu
 with st.sidebar:
     st.header("Menu")
-    # Display buttons based on the session state
-    if not st.session_state.button_login_pressed:
-        if st.button("Login with Google"):
-            handle_button_login_press()
-    else:
-        if st.button("Logout"):
+    if st.button("Logout"):
             handle_button_logout_press()
 
 
