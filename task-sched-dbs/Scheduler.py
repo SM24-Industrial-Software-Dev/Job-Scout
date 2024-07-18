@@ -62,6 +62,70 @@ class Scheduler:
         except Exception as e:
             print(f"Unexpected error: {e}")
             # Handle unexpected errors or log them for investigation
+    
+    def delete_task(self, task_id: int):
+        try:
+            segment = self.get_segment(task_id)
+            if not segment:
+                raise Exception(f"No segment found for task_id {task_id}")
+            # Delete task from executions table
+            self.table_set.executions.delete_item(
+                Key={'task_id': task_id, 'segment': segment}
+            )
+            # Delete task from tasks table
+            self.table_set.tasks.delete_item(
+                Key={'task_id': task_id}
+            )
+        except Exception as e:
+            raise Exception(f"Failed to delete task with task_id {task_id}: {e}")
+
+    # def update_task(self, task_id: int, new_task: Task):
+    #     # Determine the fields to update based on the task type
+    #     update_expression = "set interval=:i"
+    #     expression_attribute_values = {':i': new_task.interval}
+        
+    #     if new_task.type == 'notif':
+    #         update_expression += ", user_id=:uid, email=:em, job_id=:jid, title=:ti, description=:de, company=:co, location=:lo"
+    #         expression_attribute_values.update({
+    #             ':uid': new_task.user_id,
+    #             ':em': new_task.email,
+    #             ':jid': new_task.job_id,
+    #             ':ti': new_task.title,
+    #             ':de': new_task.description,
+    #             ':co': new_task.company,
+    #             ':lo': new_task.location
+    #         })
+
+    #     # Update task in tasks table
+    #     self.table_set.tasks.update_item(
+    #         Key={'task_id': task_id},
+    #         UpdateExpression=update_expression,
+    #         ExpressionAttributeValues=expression_attribute_values
+    #     )
+
+    def get_segment(self, task_id: int):
+        try:
+            response = self.table_set.executions.query(
+                KeyConditionExpression=Key('task_id').eq(task_id)
+            )
+            items = response.get('Items', [])
+            if items:
+                return items[0].get('segment')
+            else:
+                raise Exception(f"No segment found for task_id {task_id}")
+        except Exception as e:
+            raise Exception(f"Failed to get segment for task_id {task_id}: {e}")
+    
+    def get_task(self, task_id: int):
+        response = self.table_set.tasks.query(
+            KeyConditionExpression=Key('task_id').eq(task_id)
+        )
+        items = response.get('Items', [])
+        if items:
+            return items[0]
+        else:
+            raise Exception(f"No task found with task_id {task_id}")
+
 
     def get_next_segment(self):
         self.segment += 1
