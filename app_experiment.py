@@ -56,7 +56,7 @@ if st.button("search"):
 
             # Send job search data to FastAPI endpoint
             fastapi_response = requests.post(
-                'http://localhost:8000/add_search/',  # Ensure this URL is correct
+                'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/add_search/',  # Ensure this URL is correct
                 json=job_search_data
             )
 
