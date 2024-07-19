@@ -7,12 +7,13 @@ import requests
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
 
-next_task_id_counter = 0
+# Initialize the next_task_id in Streamlit's session state
+if 'next_task_id_counter' not in st.session_state:
+    st.session_state.next_task_id_counter = 0
 
 def next_task_id():
-    global next_task_id_counter
-    next_task_id_counter += 1
-    return next_task_id_counter
+    st.session_state.next_task_id_counter += 1
+    return st.session_state.next_task_id_counter
 
 st.title("JobScout")
 st.text(
