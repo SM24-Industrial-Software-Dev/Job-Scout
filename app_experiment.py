@@ -47,6 +47,10 @@ if st.button("search"):
             'location': location
         }
 
+# Convert job_id and description to the appropriate types
+        job_search_data['job_id'] = job_search_data['job_id'] if job_search_data['job_id'] is not None else 0
+        job_search_data['description'] = job_search_data['description'] if job_search_data['description'] is not None else ""
+        
         try:
             # Send message to SQS
             #sqs_response = sqs.send_message(
