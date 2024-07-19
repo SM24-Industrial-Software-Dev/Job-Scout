@@ -7,6 +7,13 @@ import requests
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL
 
+next_task_id_counter = 0
+
+def next_task_id():
+    global next_task_id_counter
+    next_task_id_counter += 1
+    return next_task_id_counter
+
 st.title("JobScout")
 st.text(
     "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
@@ -34,7 +41,7 @@ if st.button("search"):
 
         ##HARDCODED RIGHT NOW -- NEED TO UPDATE
         job_search_data = {
-            'task_id': 1,  # Example task_id, adjust as necessary
+            'task_id': next_task_id(),  # Example task_id, adjust as necessary
             'interval': "PT1M",  # Example interval, adjust as necessary
             'retries': 3,  # Example retries, adjust as necessary
             'type': "notif",  # Example type, adjust as necessary
@@ -47,10 +54,10 @@ if st.button("search"):
             'location': location
         }
 
-# Convert job_id and description to the appropriate types
+        # Convert job_id and description to the appropriate types
         job_search_data['job_id'] = job_search_data['job_id'] if job_search_data['job_id'] is not None else 0
         job_search_data['description'] = job_search_data['description'] if job_search_data['description'] is not None else ""
-        
+
         try:
             # Send message to SQS
             #sqs_response = sqs.send_message(
