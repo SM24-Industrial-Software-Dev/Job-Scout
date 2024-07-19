@@ -129,7 +129,6 @@ if st.button("search"):
                 })
             )
         )
-        st.success('Search request sent! Check your results shortly.')
 
         # # Retrieve and display messages
         # st.header("Search Results")
