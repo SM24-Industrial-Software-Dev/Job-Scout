@@ -65,13 +65,13 @@ with st.sidebar:
             handle_button_logout_press()
 
 # Function to retrieve messages from SQS
-def retrieve_messages():
-    response = sqs.receive_message(
-        QueueUrl=queue_url,
-        MaxNumberOfMessages=10,
-        WaitTimeSeconds=5
-    )
-    return response.get('Messages', [])
+# def retrieve_messages():
+#     response = sqs.receive_message(
+#         QueueUrl=queue_url,
+#         MaxNumberOfMessages=10,
+#         WaitTimeSeconds=5
+#     )
+#     return response.get('Messages', [])
 
 
 if st.button("search"):
@@ -89,24 +89,24 @@ if st.button("search"):
         )
         st.success('Search request sent! Check your results shortly.')
 
-        # Retrieve and display messages
-        st.header("Search Results")
-        messages = retrieve_messages()
-        st.write(len(messages))
-        if messages:
-            for message in messages:
-                job_details = json.loads(message['Body'])
-                st.write(f"Job Title: {job_details.get('job_title', 'N/A')}")
-                st.write(f"Location: {job_details.get('location', 'N/A')}")
-                st.write(f"Company: {job_details.get('company', 'N/A')}")
-                st.write("---")
-                # Delete the message after displaying it
-                sqs.delete_message(
-                    QueueUrl=queue_url,
-                    ReceiptHandle=message['ReceiptHandle']
-                )
-        else:
-            st.write("No results available yet.")
+        # # Retrieve and display messages
+        # st.header("Search Results")
+        # messages = retrieve_messages()
+        # st.write(len(messages))
+        # if messages:
+        #     for message in messages:
+        #         job_details = json.loads(message['Body'])
+        #         st.write(f"Job Title: {job_details.get('job_title', 'N/A')}")
+        #         st.write(f"Location: {job_details.get('location', 'N/A')}")
+        #         st.write(f"Company: {job_details.get('company', 'N/A')}")
+        #         st.write("---")
+        #         # Delete the message after displaying it
+        #         sqs.delete_message(
+        #             QueueUrl=queue_url,
+        #             ReceiptHandle=message['ReceiptHandle']
+        #         )
+        # else:
+        #     st.write("No results available yet.")
 
     else:
         st.error("Please fill out a field before searching.")
