@@ -44,7 +44,7 @@ def handle_button_logout_press():
 
 # Sidebar for floating menu
 with st.sidebar:
-    st.header("Menu")
+    #st.header("Menu")
     if st.button("Logout"):
             handle_button_logout_press()
 
