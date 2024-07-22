@@ -50,7 +50,7 @@ def run_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
 def run_streamlit():
-    os.system('streamlit run ../app.py')
+    os.system('streamlit run ../logged_in_app.py')
 
 if __name__ == "__main__":
     fastapi_thread = threading.Thread(target=run_fastapi)
