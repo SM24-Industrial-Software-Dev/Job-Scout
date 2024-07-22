@@ -44,20 +44,29 @@ def add_job_search(job_search: Notifs):
         return {"task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
+@app.get("/instant_search/")
+def scrape_jobs():
+    return master.scrape_jobs()
 
 def run_fastapi():
     uvicorn.run(app, host="0.0.0.0", port=8000)
 
-def run_streamlit():
+def run_streamlit_logged_in():
     os.system('streamlit run ../logged_in_app.py')
+
+def run_streamlit_logged_out():
+    os.system('streamlit run ../app.py')
 
 if __name__ == "__main__":
     fastapi_thread = threading.Thread(target=run_fastapi)
-    streamlit_thread = threading.Thread(target=run_streamlit)
+    streamlit_thread_one = threading.Thread(target=run_streamlit_logged_out)
+    streamlit_thread_two = threading.Thread(target=run_streamlit_logged_in)
 
     fastapi_thread.start()
-    streamlit_thread.start()
+    streamlit_thread_one.start()
+    streamlit_thread_two.start()
 
     fastapi_thread.join()
-    streamlit_thread.join()
+    streamlit_thread_one.join()
+    streamlit_thread_two.join()
