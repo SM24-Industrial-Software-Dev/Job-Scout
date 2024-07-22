@@ -45,7 +45,7 @@ dynamodb = boto3.resource(
     aws_secret_access_key=AWS_SECRET_ACCESS_KEY
 )
 
-# Function to send email
+#Email notifications
 def send_email(subject: str, recipients: list, body: str):
     try:
         server = smtplib.SMTP(host=SMTP_SERVER, port=SMTP_PORT)
