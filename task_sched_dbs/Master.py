@@ -152,7 +152,6 @@ class Executer:
         # Optional fields
         job_id = task.get('job_id')
         title = task.get('title')
-        description = task.get('description')
         company = task.get('company')
         location = task.get('location')
         
@@ -161,7 +160,6 @@ class Executer:
             'email': email,
             'job_id': job_id,
             'title': title,
-            'description': description,
             'company': company,
             'location': location
         }

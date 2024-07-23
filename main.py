@@ -5,12 +5,14 @@ import threading
 import subprocess
 import uvicorn
 import logging
+import notifs
 import os
 import sys
 from pydantic import BaseModel
 
 # Add the parent directory to the sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 
 # Importing from your own modules
 from task_sched_dbs.Master import Master
@@ -52,10 +54,14 @@ def add_job_search(job_search: Notifs):
         return {"task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
+    
 @app.get("/instant_search/")
-def scrape_jobs():
-    return master.scrape_jobs()
+def scrape_jobs(role: str, location: str, company:str):
+    try:
+        noti.perform_search(role, location)
+        return {"status": "success"}
+    except:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/login")
 def login(request: Request):
