@@ -208,6 +208,23 @@ class Master:
         self.scheduler.add_task(task)
         return task.task_id
 
+    def delete_task(self, task_id: int):
+        try:
+            self.scheduler.delete_task(task_id)
+            return {"status": "success", "message": f"Task {task_id} deleted successfully"}
+        except Exception as e:
+            return {"status": "error", "message": str(e)}
+
+    # def update_task(self, task_id: int, new_task: Task):
+    #     try:
+    #         self.scheduler.update_task(task_id, new_task)
+    #         return {"status": "success", "message": f"Task {task_id} updated successfully"}
+    #     except Exception as e:
+    #         return {"status": "error", "message": str(e)}
+        
+    def get_task(self, task_id: int) -> Task:
+        return self.scheduler.get_task(task_id)
+
     def run(self):
         while True:
             current_time = self.get_current_time()
