@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 # OAuth configuration
 client_id = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 client_secret = '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'
-redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/callback'
+redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
 
 # Initialize FastAPI app
 app = FastAPI()
