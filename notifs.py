@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # AWS configuration
-AWS_REGION = os.getenv("AWS_REGION", "us-east-1")  # Provide default region if not set
+AWS_REGION = os.getenv("AWS_REGION", "us-east-2")  # Provide default region if not set
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 NOTIFS_QUEUE_URL = os.getenv("NOTIFS_QUEUE_URL")
