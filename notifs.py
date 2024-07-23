@@ -24,7 +24,7 @@ NOTIFS_QUEUE_URL = os.getenv("NOTIFS_QUEUE_URL")
 
 # Email configuration
 SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = int(os.getenv("SMTP_PORT"))
+SMTP_PORT = os.getenv("SMTP_PORT")
 SMTP_USERNAME = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 MAIL_FROM = os.getenv("MAIL_FROM")
