@@ -11,20 +11,10 @@ app.secret_key = "CS_class_of_2027"
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
-app.config['GOOGLE_REDIRECT_URI'] = 'http://localhost:5000/callback'
-
-# Initialize DynamoDB client and tables
-AWS_REGION = os.getenv("AWS_REGION")
-AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
-AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+app.config['GOOGLE_REDIRECT_URI'] = 'http://localhost:8080/callback'
 
 try:
-    dynamodb = boto3.resource(
-        'dynamodb',
-        region_name=AWS_REGION,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     users_table = dynamodb.Table('Users')
 except ClientError as e:
     print(f"Error initializing DynamoDB: {e}")
@@ -58,7 +48,9 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    return redirect(url_for('index'))
+    # Redirect to app.py after logout
+    return redirect('http://localhost:8501')
+
 
 @app.route('/callback')
 def authorize():
@@ -85,7 +77,7 @@ def authorize():
         else:
             print(f"Error storing user in DynamoDB: {e}")
 
-    return redirect('http://localhost:8501')  # Redirect to Streamlit app
+    return redirect('http://localhost:8502')  # Redirect to Streamlit logged_in_app.py
 
 @app.route('/is_logged_in')
 def is_logged_in():
@@ -96,4 +88,4 @@ def is_logged_in():
         return jsonify(logged_in=False)
 
 if __name__ == '__main__':
-    app.run('localhost', 5000, debug=True)
+    app.run(port=8080)
