@@ -5,14 +5,14 @@ import threading
 import subprocess
 import uvicorn
 import logging
-import notifs
+#import notifs
 import os
 import sys
 from pydantic import BaseModel
 
 # Add the parent directory to the sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
+#SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
 
 # Importing from your own modules
 from task_sched_dbs.Master import Master
