@@ -3,7 +3,7 @@ import boto3
 class Impl:
     def __init__(self):
         print("\033[92mAWS initializing...\033[0m")
-        self.sqs_client = boto3.client('sqs')
+        self.sqs_client = boto3.client('sqs', region_name='us-east-2')
 
         # Create SQS queues
         self.refresh_queue_url = self.sqs_client.create_queue(QueueName='refresh-queue')['QueueUrl']
