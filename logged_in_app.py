@@ -38,8 +38,8 @@ states = [
 location = st.selectbox(label="Location:", options=states)
 company = st.text_input("Company:")
 
-login_url = "http://localhost:8080/login"
-logout_url = "http://localhost:8080/logout"
+login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
+logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
