@@ -5,27 +5,21 @@ import threading
 import subprocess
 import uvicorn
 import logging
-#import notifs
+import notifs
 import os
-import sys
 from pydantic import BaseModel
-
-# Add the parent directory to the sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-#SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-
-# Importing from your own modules
 from task_sched_dbs.Master import Master
 from task_sched_dbs.Tables import Notifs, Task
 from flask_application import app as flask_app
+from scraper import linkedin_scraper  # Importing the scraper function
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # OAuth configuration
-client_id = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
-client_secret = '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'
+client_id = os.getenv('GOOGLE_CLIENT_ID', 'your_default_client_id')
+client_secret = os.getenv('GOOGLE_CLIENT_SECRET', 'your_default_client_secret')
 redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
 
 # Initialize FastAPI app
@@ -54,13 +48,13 @@ def add_job_search(job_search: Notifs):
         return {"task_id": task_id}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-    
+
 @app.get("/instant_search/")
-def scrape_jobs(role: str, location: str, company:str):
+def scrape_jobs(role: str, location: str, company: str):
     try:
-        noti.perform_search(role, location)
+        notifs.perform_search(role, location, company)
         return {"status": "success"}
-    except:
+    except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/login")
@@ -131,6 +125,13 @@ def run_streamlit():
     subprocess.Popen(['streamlit', 'run', 'app.py', '--server.port', '8501'])
 
 if __name__ == "__main__":
+    # Run the scraper once
+    try:
+        linkedin_scraper("software engineer", "new york")
+        logging.info("Scraper ran successfully.")
+    except Exception as e:
+        logging.error(f"Error running scraper: {e}")
+
     fastapi_thread = threading.Thread(target=run_fastapi)
     flask_thread = threading.Thread(target=run_flask)
     streamlit_thread = threading.Thread(target=run_streamlit)
