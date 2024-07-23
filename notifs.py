@@ -77,16 +77,17 @@ def process_notifs_message():
                 body = json.loads(message['Body'])
                 job_title = body['job_title']
                 location = body['location']
+                company = body['company']
                 user_email = body['email']
 
                 # Perform search
-                search_results = perform_search(job_title, location)
+                search_results = perform_search(job_title, location, company)
 
                 # Send email with results
                 send_email(
-                    subject=f"Job Search Results for {job_title} in {location}",
+                    subject=f"Job Search Results for {job_title} in {location} at {company}",
                     recipients=[user_email],
-                    body=f"Here are the job search results for {job_title} in {location}:\n\n{search_results}"
+                    body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
                 )
 
                 sqs_client.delete_message(
@@ -97,13 +98,13 @@ def process_notifs_message():
         logger.error(f"Error processing notifs message: {str(e)}")
 
 # Function to perform search
-def perform_search(job_title, location):
+def perform_search(job_title, location, company):
     table = dynamodb.Table('Jobs')
     search_results = []
 
     # Scan the table for matching job_title and location
     response = table.scan(
-        FilterExpression=Attr('title').contains(job_title) & Attr('location').contains(location)
+        FilterExpression=Attr('title').contains(job_title) & Attr('location').contains(location) & Attr('company').contains(company)
     )
     for job in response['Items']:
         search_results.append(f"Title: {job['title']}, Company: {job['company']}, Location: {job['location']}, Link: {job['link']}")
