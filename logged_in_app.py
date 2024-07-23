@@ -3,11 +3,19 @@ import boto3
 import json
 import requests
 
-#IMPORTANT INFO: To run using localhost use streamlit run logged_in_app.py --server.port 8501
+# IMPORTANT INFO: To run using localhost use streamlit run logged_in_app.py --server.port 8502
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
+queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL
+
+# Initialize the next_task_id in Streamlit's session state
+if 'next_task_id_counter' not in st.session_state:
+    st.session_state.next_task_id_counter = 0
+
+def next_task_id():
+    st.session_state.next_task_id_counter += 1
+    return st.session_state.next_task_id_counter
 
 st.title("JobScout")
 st.text(
@@ -16,7 +24,7 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
-job_title = st.text_input("Job Title:") # can add default value
+job_title = st.text_input("Job Title:")
 states = [
     '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
     'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
@@ -27,12 +35,11 @@ states = [
     'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
     'Wisconsin', 'Wyoming'
 ]
-location = st.selectbox(label="Location:", options=states) # make empty string the default for entire U.S.
-company = st.text_input("Company:") # can add default value
+location = st.selectbox(label="Location:", options=states)
+company = st.text_input("Company:")
 
-login_url = "http://localhost:5000/login"
-logout_url = "http://localhost:5000/logout"
-is_logged_in_url = "http://localhost:5000/is_logged_in"
+login_url = "http://localhost:8080/login"
+logout_url = "http://localhost:8080/logout"
 
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
@@ -40,24 +47,47 @@ if 'button_login_pressed' not in st.session_state:
 # Function to handle logout press
 def handle_button_logout_press():
     st.session_state.button_login_pressed = False
+    # Redirect to logout URL and then to app.py
     st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
 
 # Sidebar for floating menu
 with st.sidebar:
-    #st.header("Menu")
     if st.button("Logout"):
-            handle_button_logout_press()
-
-
-
-
-
-# notifications = ['', 'hourly', 'daily', 'weekly']
-# notification_frequency = st.selectbox(label="Select how often you would like to be notified of new job listings:", options=notifications)
+        handle_button_logout_press()
 
 if st.button("search"):
     if job_title or location or company:
-        # Send message to SQS
+        job_search_data = {
+            'task_id': next_task_id(),
+            'interval': "PT1M",
+            'retries': 3,
+            'type': "notif",
+            'user_id': 1,
+            'email': "email",
+            'job_id': None,
+            'title': job_title,
+            'description': None,
+            'company': company,
+            'location': location
+        }
+
+        job_search_data['job_id'] = job_search_data['job_id'] if job_search_data['job_id'] is not None else 0
+        job_search_data['description'] = job_search_data['description'] if job_search_data['description'] is not None else ""
+
+        try:
+            fastapi_response = requests.post(
+                'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/add_search/',
+                json=job_search_data
+            )
+
+            if fastapi_response.status_code == 200:
+                st.success('Search request sent! Check your results shortly.')
+            else:
+                st.error(f"Failed to add job search. Error: {fastapi_response.text}")
+
+        except Exception as e:
+            st.error(f"An error occurred: {e}")
+
         response = sqs.send_message(
             QueueUrl=queue_url,
             MessageBody=(
@@ -68,6 +98,6 @@ if st.button("search"):
                 })
             )
         )
-        st.success('Search request sent! Check your results shortly.')
+
     else:
         st.error("Please fill out a field before searching.")
