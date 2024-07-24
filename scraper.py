@@ -4,13 +4,14 @@ import json
 import time
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+import 
 
 class Scraper:
     def __init__(self, region_name='us-east-2', table_name='Jobs'):
         self.dynamodb = boto3.resource('dynamodb', region_name=region_name)
         self.table = self.dynamodb.Table(table_name)
 
-    def linkedin_scraper(self, page_number=0):
+    def linkedin_scraper(self, page_number=0, job_counter:int = 0):
         base_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0&start='
         next_page = base_url + str(page_number)
         print(f"Scraping URL: {next_page}")
@@ -31,7 +32,6 @@ class Scraper:
             print(f"No jobs found on page {page_number}. Ending scrape.")
             return
 
-        job_counter = 0
         for job in jobs:
             job_title = job.find('h3', class_='base-search-card__title').text.strip()
             job_company = job.find('h4', class_='base-search-card__subtitle').text.strip()
@@ -67,7 +67,7 @@ class Scraper:
         # Adding a delay to avoid hitting the server too quickly
         time.sleep(1)
 
-        self.linkedin_scraper(page_number + 25)
+        self.linkedin_scraper(page_number + 25, job_counter)
 
 
 if __name__ == "__main__":
