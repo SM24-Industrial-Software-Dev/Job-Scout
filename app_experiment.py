@@ -1,24 +1,8 @@
-import os
-from dotenv import load_dotenv
 import streamlit as st
 import boto3
 import json
 import requests
 from botocore.exceptions import ClientError
-
-# # Load environment variables from .env file
-# load_dotenv()
-#
-# aws_access_key_id = os.getenv('AWS_ACCESS_KEY_ID')
-# aws_secret_access_key = os.getenv('AWS_SECRET_ACCESS_KEY')
-# region = os.getenv('AWS_DEFAULT_REGION')
-#
-# # Initialize a session using the provided credentials
-# #session = boto3.Session(
-#  #   aws_access_key_id=aws_access_key_id,
-#   #  aws_secret_access_key=aws_secret_access_key,
-#    # region_name=region
-# #)
 
 # Initialize the DynamoDB client
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
