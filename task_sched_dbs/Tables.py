@@ -96,6 +96,39 @@ class Tables:
                 print(f"Table '{table_name}' already exists.")
             else:
                 print(f"Error creating table: {str(e)}")
+    
+    def create_users_table(self):
+        try:
+            # Define the table schema
+            table = self.dynamodb.create_table(
+                TableName='Users',
+                KeySchema=[
+                    {
+                        'AttributeName': 'id',
+                        'KeyType': 'HASH'  # Partition key
+                    }
+                ],
+                AttributeDefinitions=[
+                    {
+                        'AttributeName': 'id',
+                        'AttributeType': 'S'  # String
+                    }
+                ],
+                ProvisionedThroughput={
+                    'ReadCapacityUnits': 5,
+                    'WriteCapacityUnits': 5
+                }
+            )
+            
+            # Wait until the table exists
+            table.wait_until_exists()
+
+            # Print the table status
+            print(f"\033[92mTable 'Users' created successfully. Status: {table.table_status}\033[0m")
+        except self.dynamodb.meta.client.exceptions.ResourceInUseException:
+            print("Table 'Users' already exists.")
+        except ClientError as e:
+            print(f"Error creating table: {str(e)}")
 
     def initialize_tables(self):
         tables = {
@@ -154,6 +187,7 @@ class Tables:
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
         self.create_jobs_table()
+        self.create_users_table()
 
 if __name__ == "__main__":
     print("Initializing tables...")

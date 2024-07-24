@@ -14,7 +14,7 @@ app.config['GOOGLE_SECRET'] = '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'
 app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
 
 try:
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
     users_table = dynamodb.Table('Users')
 except ClientError as e:
     print(f"Error initializing DynamoDB: {e}")
