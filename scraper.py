@@ -10,10 +10,9 @@ class Scraper:
         self.dynamodb = boto3.resource('dynamodb', region_name=region_name)
         self.table = self.dynamodb.Table(table_name)
 
-    def linkedin_scraper(self, job_title, location, page_number=0):
-        base_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?keywords={job_title}&location={location}&trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0&start='
-        formatted_url = base_url.format(job_title=job_title.replace(' ', '%20'), location=location.replace(' ', '%20'))
-        next_page = formatted_url + str(page_number)
+    def linkedin_scraper(self, page_number=0):
+        base_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0&start='
+        next_page = base_url + str(page_number)
         print(f"Scraping URL: {next_page}")
 
         response = requests.get(next_page, headers={
@@ -68,9 +67,9 @@ class Scraper:
         # Adding a delay to avoid hitting the server too quickly
         time.sleep(1)
 
-        self.linkedin_scraper(job_title, location, page_number + 25)
+        self.linkedin_scraper(page_number + 25)
 
 
 if __name__ == "__main__":
     scraper = Scraper()
-    scraper.linkedin_scraper("Software Engineer", "San Francisco")
+    scraper.linkedin_scraper()
