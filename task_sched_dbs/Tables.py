@@ -42,7 +42,7 @@ class ExecutionsData(BaseModel):
 
 class Tables:
     def __init__(self):
-        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+        self.dynamodb = boto3.client('dynamodb', region_name='us-east-2')
 
     def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput, global_secondary_indexes=None):
         try:
