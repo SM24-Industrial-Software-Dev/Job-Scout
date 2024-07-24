@@ -57,10 +57,11 @@ class Tables:
             table = self.dynamodb.create_table(**table_params)
             table['TableDescription']['TableStatus']  # This triggers the creation process
             print(f"\033[92mTable {table_name} creation initiated.\033[0m")
-        except self.dynamodb.exceptions.ResourceInUseException:
-            print(f"Table '{table_name}' already exists.")
         except ClientError as e:
-            print(f"\033[91mError creating table {table_name}: {e}\033[0m")
+            if e.response['Error']['Code'] == 'ResourceInUseException':
+                print(f"Table '{table_name}' already exists.")
+            else:
+                print(f"Error creating table: {str(e)}")
 
     def create_jobs_table(self, table_name='Jobs'):
         try:
