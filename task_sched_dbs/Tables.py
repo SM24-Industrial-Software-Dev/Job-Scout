@@ -74,12 +74,11 @@ class Tables:
     
     import boto3
 
-    def create_jobs_table(self, region_name='us-east-2', table_name='Jobs'):
-        dynamodb = boto3.client('dynamodb', region_name=region_name)
+    def create_jobs_table(self, table_name='Jobs'):
         
         # Create table
         try:
-            response = dynamodb.create_table(
+            response = self.dynamodb.create_table(
                 TableName=table_name,
                 KeySchema=[
                     {
@@ -119,7 +118,7 @@ class Tables:
                 }
             )
             print(f"Job Table creation initiated. Status: {response['TableDescription']['TableStatus']}")
-        except dynamodb.exceptions.ResourceInUseException:
+        except self.dynamodb.exceptions.ResourceInUseException:
             print(f"Table '{table_name}' already exists.")
         except Exception as e:
             print(f"Error creating table: {str(e)}")
