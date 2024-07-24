@@ -128,12 +128,6 @@ def run_streamlit():
     subprocess.Popen(['streamlit', 'run', 'app.py', '--server.port', '8501'])
 
 if __name__ == "__main__":
-    # Run the scraper once
-    try:
-        linkedin_scraper("software engineer", "new york")
-        logging.info("Scraper ran successfully.")
-    except Exception as e:
-        logging.error(f"Error running scraper: {e}")
 
     fastapi_thread = threading.Thread(target=run_fastapi)
     flask_thread = threading.Thread(target=run_flask)

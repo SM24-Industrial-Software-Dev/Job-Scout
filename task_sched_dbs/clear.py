@@ -1,5 +1,5 @@
-from task_sched_dbs.delete_tables import delete_tables
-from task_sched_dbs.delete_queues import delete_aws_resources
+from delete_tables import delete_tables
+from delete_queues import delete_aws_resources
 import time
 
 delete_aws_resources()
