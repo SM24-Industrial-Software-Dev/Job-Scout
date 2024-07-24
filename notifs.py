@@ -6,7 +6,7 @@ import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from dotenv import load_dotenv
-from botocore.exceptions import NoCredentialsError, PartialCredentialsError
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError, NoRegionError
 from boto3.dynamodb.conditions import Attr
 
 # Load environment variables from .env file
@@ -17,33 +17,46 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # AWS configuration
-AWS_REGION = os.getenv("AWS_REGION")
+AWS_REGION = os.getenv("AWS_REGION", "us-east-2")  # Provide default region if not set
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 NOTIFS_QUEUE_URL = os.getenv("NOTIFS_QUEUE_URL")
 
 # Email configuration
 SMTP_SERVER = os.getenv("SMTP_SERVER")
-SMTP_PORT = int(os.getenv("SMTP_PORT"))
+SMTP_PORT = os.getenv("SMTP_PORT", 587)  # Provide default SMTP port if not set
 SMTP_USERNAME = os.getenv("SMTP_USERNAME")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 MAIL_FROM = os.getenv("MAIL_FROM")
 
+# Check if essential environment variables are missing
+if not all([AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, NOTIFS_QUEUE_URL, SMTP_SERVER, SMTP_USERNAME, SMTP_PASSWORD, MAIL_FROM]):
+    logger.error("One or more essential environment variables are missing.")
+    raise SystemExit("Missing environment variables")
+
 # Initialize SQS client
-sqs_client = boto3.client(
-    'sqs',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
+try:
+    sqs_client = boto3.client(
+        'sqs',
+        region_name=AWS_REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+except NoRegionError as e:
+    logger.error(f"AWS region not specified: {str(e)}")
+    raise
 
 # Initialize DynamoDB resource
-dynamodb = boto3.resource(
-    'dynamodb',
-    region_name=AWS_REGION,
-    aws_access_key_id=AWS_ACCESS_KEY_ID,
-    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-)
+try:
+    dynamodb = boto3.resource(
+        'dynamodb',
+        region_name=AWS_REGION,
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+    )
+except NoRegionError as e:
+    logger.error(f"AWS region not specified: {str(e)}")
+    raise
 
 # Function to send email
 def send_email(subject: str, recipients: list, body: str):

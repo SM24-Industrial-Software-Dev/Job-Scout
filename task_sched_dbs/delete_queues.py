@@ -1,7 +1,7 @@
 import boto3
 
 def delete_aws_resources():
-    sqs_client = boto3.client('sqs', region_name='us-east-1')
+    sqs_client = boto3.client('sqs', region_name='us-east-2')
 
     # List of queue names to delete
     sqs_queues = ['refresh-queue', 'notif-queue']

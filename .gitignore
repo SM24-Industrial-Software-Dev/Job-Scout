@@ -1,12 +1,9 @@
-### Mac OS ###
+# Ignore these files and directories
 .DS_Store
-
 .idea/
 .venv/
 venv/
 js-venv2/
-
 js-3
+env
 .env
-
-js-3
