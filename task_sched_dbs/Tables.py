@@ -1,4 +1,5 @@
 import boto3
+from botocore.exceptions import ClientError
 from datetime import datetime,timezone
 # pylint: disable=no-name-in-module
 # pylint: disable=no-self-argument
@@ -71,12 +72,8 @@ class Tables:
             print(f"\033[92mTable {table_name} created successfully.\033[0m")
         except Exception as e:
             print(f"\033[91mError creating table {table_name}: {e}\033[0m")
-    
-    import boto3
 
     def create_jobs_table(self, table_name='Jobs'):
-        
-        # Create table
         try:
             response = self.dynamodb.create_table(
                 TableName=table_name,
@@ -120,7 +117,7 @@ class Tables:
             print(f"Job Table creation initiated. Status: {response['TableDescription']['TableStatus']}")
         except self.dynamodb.exceptions.ResourceInUseException:
             print(f"Table '{table_name}' already exists.")
-        except Exception as e:
+        except ClientError as e:
             print(f"Error creating table: {str(e)}")
 
 
