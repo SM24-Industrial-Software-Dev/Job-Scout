@@ -6,7 +6,13 @@
 .venv/
 venv/
 js-venv2/
+<<<<<<< HEAD
+js-3env
+env
+env
+=======
 js-3
 
 #SECRET:
 .env
+>>>>>>> c4ad25781d953ef64b56bd18bbf2a287a9870ed2
