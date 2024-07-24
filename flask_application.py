@@ -66,8 +66,8 @@ def authorize():
             'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
             'email': user_info['email'],
             'name': user_info.get('name', ''),
-            'preferred_job_type': None,
-            'preferred_location': None
+            #'preferred_job_type': None,
+            #'preferred_location': None
         }
         users_table.put_item(Item=user_item)
     except ClientError as e:
