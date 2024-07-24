@@ -51,7 +51,7 @@ class ExecutionsData(BaseModel):
 
 class Tables:
     def __init__(self):
-        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
         self.tasks = self.dynamodb.Table('tasks')
         self.executions = self.dynamodb.Table('executions')
         self.history = self.dynamodb.Table('history')
@@ -71,6 +71,59 @@ class Tables:
             print(f"\033[92mTable {table_name} created successfully.\033[0m")
         except Exception as e:
             print(f"\033[91mError creating table {table_name}: {e}\033[0m")
+    
+    import boto3
+
+def create_jobs_table(region_name='us-east-2', table_name='Jobs'):
+    dynamodb = boto3.client('dynamodb', region_name=region_name)
+    
+    # Create table
+    try:
+        response = dynamodb.create_table(
+            TableName=table_name,
+            KeySchema=[
+                {
+                    'AttributeName': 'job_id',
+                    'KeyType': 'HASH'  # Partition key
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'job_id',
+                    'AttributeType': 'N'  # Number
+                },
+                {
+                    'AttributeName': 'title',
+                    'AttributeType': 'S'  # String
+                },
+                {
+                    'AttributeName': 'company',
+                    'AttributeType': 'S'  # String
+                },
+                {
+                    'AttributeName': 'location',
+                    'AttributeType': 'S'  # String
+                },
+                {
+                    'AttributeName': 'link',
+                    'AttributeType': 'S'  # String
+                },
+                {
+                    'AttributeName': 'description',
+                    'AttributeType': 'S'  # String
+                }
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 5,
+                'WriteCapacityUnits': 5
+            }
+        )
+        print(f"Job Table creation initiated. Status: {response['TableDescription']['TableStatus']}")
+    except dynamodb.exceptions.ResourceInUseException:
+        print(f"Table '{table_name}' already exists.")
+    except Exception as e:
+        print(f"Error creating table: {str(e)}")
+
 
     def initialize_tables(self):
         tables = {
@@ -128,6 +181,7 @@ class Tables:
                               table_config['attribute_definitions'],
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
+        create_jobs_table()
             
 
 
