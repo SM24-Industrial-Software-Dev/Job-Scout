@@ -5,7 +5,7 @@ import boto3
 
 def delete_tables():
     # Initialize DynamoDB client
-    dynamodb = boto3.client('dynamodb', region_name='us-east-1')
+    dynamodb = boto3.client('dynamodb', region_name='us-east-2')
 
     # List of table names to delete
     table_names = ['tasks', 'executions', 'history']

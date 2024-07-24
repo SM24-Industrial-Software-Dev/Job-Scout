@@ -74,7 +74,7 @@ class Tables:
     
     import boto3
 
-    def create_jobs_table(region_name='us-east-2', table_name='Jobs'):
+    def create_jobs_table(self, region_name='us-east-2', table_name='Jobs'):
         dynamodb = boto3.client('dynamodb', region_name=region_name)
         
         # Create table
@@ -181,7 +181,7 @@ class Tables:
                               table_config['attribute_definitions'],
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
-        create_jobs_table()
+        self.create_jobs_table()
             
 
 
