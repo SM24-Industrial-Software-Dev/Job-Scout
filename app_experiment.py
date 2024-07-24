@@ -34,19 +34,6 @@ except ClientError as e:
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
-=======
-
-# Initialize the SQS client
-sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL
-
-next_task_id_counter = 0
-
-def next_task_id():
-    global next_task_id_counter
-    next_task_id_counter += 1
-    return next_task_id_counter
->>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 
 st.title("JobScout")
 st.text(
@@ -69,7 +56,6 @@ states = [
 location = st.selectbox(label="Location:", options=states)  # make empty string the default for entire U.S.
 company = st.text_input("Company:")  # can add default value
 
-<<<<<<< HEAD
 login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
 logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in"
@@ -151,52 +137,3 @@ if st.button("search"):
 # Fetch and display all jobs from the Jobs table
 jobs = get_all_jobs()
 display_jobs(jobs)
-
-=======
-if st.button("search"):
-    if job_title or location or company:
-        # Prepare the job search data
-
-        ##HARDCODED RIGHT NOW -- NEED TO UPDATE
-        job_search_data = {
-            'task_id': next_task_id(),  # Example task_id, adjust as necessary
-            'interval': "PT1M",  # Example interval, adjust as necessary
-            'retries': 3,  # Example retries, adjust as necessary
-            'type': "notif",  # Example type, adjust as necessary
-            'user_id': 1,
-            'email': "email",
-            'job_id': None,
-            'title': job_title,
-            'description': None,
-            'company': company,
-            'location': location
-        }
-
-        # Convert job_id and description to the appropriate types
-        job_search_data['job_id'] = job_search_data['job_id'] if job_search_data['job_id'] is not None else 0
-        job_search_data['description'] = job_search_data['description'] if job_search_data['description'] is not None else ""
-
-        try:
-            # Send message to SQS
-            #sqs_response = sqs.send_message(
-            #    QueueUrl=queue_url,
-            #    MessageBody=json.dumps(job_search_data)
-            #)
-
-            # Send job search data to FastAPI endpoint
-            fastapi_response = requests.post(
-                'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/add_search/',  # Ensure this URL is correct
-                json=job_search_data
-            )
-
-            if fastapi_response.status_code == 200:
-                st.success('Search request sent! Check your results shortly.')
-            else:
-                st.error(f"Failed to add job search. Error: {fastapi_response.text}")
-
-        except Exception as e:
-            st.error(f"An error occurred: {e}")
-
-    else:
-        st.error("Please fill out all fields before searching.")
->>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
