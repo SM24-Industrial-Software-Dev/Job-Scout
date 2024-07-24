@@ -76,26 +76,6 @@ class Tables:
                     {
                         'AttributeName': 'job_id',
                         'AttributeType': 'N'  # Number
-                    },
-                    {
-                        'AttributeName': 'title',
-                        'AttributeType': 'S'  # String
-                    },
-                    {
-                        'AttributeName': 'company',
-                        'AttributeType': 'S'  # String
-                    },
-                    {
-                        'AttributeName': 'location',
-                        'AttributeType': 'S'  # String
-                    },
-                    {
-                        'AttributeName': 'link',
-                        'AttributeType': 'S'  # String
-                    },
-                    {
-                        'AttributeName': 'description',
-                        'AttributeType': 'S'  # String
                     }
                 ],
                 ProvisionedThroughput={
