@@ -54,7 +54,8 @@ def add_job_search(job_search: Notifs):
 @app.get("/instant_search/")
 def scrape_jobs(role: str, location: str, company: str):
     try:
-        notifs.perform_search(role, location, company)
+        results = notifs.perform_search(role, location, company)
+        print(results)
         return {"status": "success"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
