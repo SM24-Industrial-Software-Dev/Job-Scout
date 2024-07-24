@@ -54,14 +54,20 @@ class Tables:
             }
             if global_secondary_indexes:
                 table_params['GlobalSecondaryIndexes'] = global_secondary_indexes
+
+            # Create the table
             table = self.dynamodb.create_table(**table_params)
-            table['TableDescription']['TableStatus']  # This triggers the creation process
-            print(f"\033[92mTable {table_name} creation initiated.\033[0m")
+
+            # Wait until the table exists
+            table.wait_until_exists()
+
+            # Print the table status
+            print(f"\033[92mTable {table_name} created successfully. Status: {table.table_status}\033[0m")
+        except self.dynamodb.meta.client.exceptions.ResourceInUseException:
+            print(f"Table '{table_name}' already exists.")
         except ClientError as e:
-            if e.response['Error']['Code'] == 'ResourceInUseException':
-                print(f"Table '{table_name}' already exists.")
-            else:
-                print(f"Error creating table: {str(e)}")
+            print(f"Error creating table: {str(e)}")
+
 
     def create_jobs_table(self, table_name='Jobs'):
         try:
