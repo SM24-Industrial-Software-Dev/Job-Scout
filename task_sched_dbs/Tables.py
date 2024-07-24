@@ -1,31 +1,25 @@
 import boto3
 from botocore.exceptions import ClientError
-from datetime import datetime,timezone
-# pylint: disable=no-name-in-module
-# pylint: disable=no-self-argument
+from datetime import datetime, timezone
 from pydantic import BaseModel, Field
 
 def get_current_time() -> int:
-        # Get current time as an integer timestamp rounded to the nearest minute
-        now = datetime.now(timezone.utc)
-        return get_unix_timestamp_by_min(now)
+    now = datetime.now(timezone.utc)
+    return get_unix_timestamp_by_min(now)
 
 def get_unix_timestamp_by_min(dt: datetime) -> int:
-    # Set seconds and microseconds to zero
     dt = dt.replace(second=0, microsecond=0)
-    # Convert to UNIX timestamp
     return int(dt.timestamp())
 
 class Task(BaseModel):
     task_id: int
     interval: str
     retries: int
-    created: int= Field(default_factory=get_current_time) #int(datetime.now().timestamp()) #Field(default_factory=get_current_time)
+    created: int = Field(default_factory=get_current_time)
     type: str
 
 class Refresh(Task):
     last_refresh: int
-
 
 class Notifs(Task):
     user_id: int
@@ -35,27 +29,20 @@ class Notifs(Task):
     company: str = None
     location: str = None
 
-
 class HistoryData(BaseModel):
     task_id: int
     exec_time: int
     status: str
     retries: int
-    # last_update: int
-
 
 class ExecutionsData(BaseModel):
     next_exec_time: int
     task_id: int
     segment: int
 
-
 class Tables:
     def __init__(self):
-        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
-        self.tasks = self.dynamodb.Table('tasks')
-        self.executions = self.dynamodb.Table('executions')
-        self.history = self.dynamodb.Table('history')
+        self.dynamodb = boto3.client('dynamodb', region_name='us-east-2')
 
     def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput, global_secondary_indexes=None):
         try:
@@ -68,9 +55,11 @@ class Tables:
             if global_secondary_indexes:
                 table_params['GlobalSecondaryIndexes'] = global_secondary_indexes
             table = self.dynamodb.create_table(**table_params)
-            table.wait_until_exists()
-            print(f"\033[92mTable {table_name} created successfully.\033[0m")
-        except Exception as e:
+            table['TableDescription']['TableStatus']  # This triggers the creation process
+            print(f"\033[92mTable {table_name} creation initiated.\033[0m")
+        except self.dynamodb.exceptions.ResourceInUseException:
+            print(f"Table '{table_name}' already exists.")
+        except ClientError as e:
             print(f"\033[91mError creating table {table_name}: {e}\033[0m")
 
     def create_jobs_table(self, table_name='Jobs'):
@@ -119,7 +108,6 @@ class Tables:
             print(f"Table '{table_name}' already exists.")
         except ClientError as e:
             print(f"Error creating table: {str(e)}")
-
 
     def initialize_tables(self):
         tables = {
@@ -178,10 +166,8 @@ class Tables:
                               table_config['provisioned_throughput'],
                               table_config.get('global_secondary_indexes'))
         self.create_jobs_table()
-            
-
 
 if __name__ == "__main__":
-    print("here comes main")
+    print("Initializing tables...")
     table = Tables()
     table.initialize_tables()
