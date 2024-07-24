@@ -42,7 +42,7 @@ class ExecutionsData(BaseModel):
 
 class Tables:
     def __init__(self):
-        self.dynamodb = boto3.client('dynamodb', region_name='us-east-2')
+        self.dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 
     def create_table(self, table_name, key_schema, attribute_definitions, provisioned_throughput, global_secondary_indexes=None):
         try:
@@ -84,10 +84,11 @@ class Tables:
                 }
             )
             print(f"Job Table creation initiated. Status: {response['TableDescription']['TableStatus']}")
-        except self.dynamodb.exceptions.ResourceInUseException:
-            print(f"Table '{table_name}' already exists.")
         except ClientError as e:
-            print(f"Error creating table: {str(e)}")
+            if e.response['Error']['Code'] == 'ResourceInUseException':
+                print(f"Table '{table_name}' already exists.")
+            else:
+                print(f"Error creating table: {str(e)}")
 
     def initialize_tables(self):
         tables = {
