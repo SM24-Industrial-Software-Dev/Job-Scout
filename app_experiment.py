@@ -1,13 +1,9 @@
-<<<<<<< HEAD
 import os
 from dotenv import load_dotenv
-=======
->>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 import streamlit as st
 import boto3
 import json
 import requests
-<<<<<<< HEAD
 from botocore.exceptions import ClientError
 
 # Load environment variables from .env file
