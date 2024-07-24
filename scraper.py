@@ -4,7 +4,7 @@ import json
 import time
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
-import 
+
 
 class Scraper:
     def __init__(self, region_name='us-east-2', table_name='Jobs'):
