@@ -6,6 +6,7 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError, Cli
 app = FastAPI()
 
 <<<<<<< HEAD
+<<<<<<< HEAD
 <<<<<<< HEAD:main.py
 # Start the master scheduler in the background
 master_thread = threading.Thread(target=master.run, daemon=True)
@@ -64,6 +65,12 @@ def callback(code: str, request: Request):
     }
 =======
 =======
+=======
+dynamodb = boto3.resource('dynamodb', region_name='us-east-1')  
+table = dynamodb.Table("Jobs")
+
+
+>>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 class Job(BaseModel):
     job_id: str
     title: str
@@ -71,6 +78,9 @@ class Job(BaseModel):
     company: str
     location: str
 
+<<<<<<< HEAD
+>>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
+=======
 >>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 class UpdateJob(BaseModel):
     update_key: str
@@ -140,7 +150,10 @@ def delete_job(job_id: str):
     except (NoCredentialsError, PartialCredentialsError) as e:
         raise HTTPException(status_code=500, detail=str(e))
 <<<<<<< HEAD
+<<<<<<< HEAD
 >>>>>>> 9101702b0d4f996e8d3a90e47f61c2c19e5bb78b:table-creator.py
+=======
+>>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 =======
 >>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
 

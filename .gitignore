@@ -6,5 +6,9 @@
 .venv/
 venv/
 js-venv2/
+<<<<<<< HEAD
 js-3
 .env
+=======
+js-3
+>>>>>>> 708af31af46e05862e46f7c94ebc29a4a64ba30b
