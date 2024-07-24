@@ -31,7 +31,6 @@ class Notifs(Task):
     email: str
     job_id: int = None
     title: str = None
-    description: str = None
     company: str = None
     location: str = None
 

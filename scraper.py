@@ -14,7 +14,7 @@ headers = {
 }
 
 # Initialize the DynamoDB resource
-dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('Jobs')
 
 job_counter = 0

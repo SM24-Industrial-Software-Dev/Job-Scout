@@ -37,7 +37,6 @@ class Scheduler:
                     'email': t.email,
                     'job_id': t.job_id,
                     'title': t.title,
-                    'description': t.description,
                     'company': t.company,
                     'location': t.location
                 })
