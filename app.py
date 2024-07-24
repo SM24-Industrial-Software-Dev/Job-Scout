@@ -3,10 +3,20 @@ import boto3
 import json
 import requests
 
+# Initialize the DynamoDB client
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+table_name = 'Jobs'
+
+try:
+    table = dynamodb.Table(table_name)
+    # Check if table exists
+    table.load()
+except ClientError as e:
+    st.error(f"Could not connect to DynamoDB table: {e.response['Error']['Message']}")
+
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
-
 
 
 st.title("JobScout")
@@ -66,6 +76,26 @@ with st.sidebar:
         if st.button("Logout"):
             handle_button_logout_press()
 
+# Function to retrieve all jobs from DynamoDB
+def get_all_jobs():
+    try:
+        response = table.scan()
+        return response.get('Items', [])
+    except ClientError as e:
+        st.error(f"An error occurred: {e.response['Error']['Message']}")
+        st.error(f"Error code: {e.response['Error']['Code']}")
+        st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
+        return []
+
+# Display the jobs in Streamlit
+def display_jobs(jobs):
+    for job in jobs:
+        st.subheader(job.get('title', 'No Title'))
+        st.write(f"Location: {job.get('location', 'Unknown')}")
+        st.write(f"Company: {job.get('company', 'Unknown')}")
+        st.write(f"Description: {job.get('description', 'No Description')}")
+        st.write("---")
+
 # Function to retrieve messages from SQS
 # def retrieve_messages():
 #     response = sqs.receive_message(
@@ -75,20 +105,41 @@ with st.sidebar:
 #     )
 #     return response.get('Messages', [])
 
+# Display the jobs in Streamlit
+def display_jobs(jobs):
+    for job in jobs:
+        st.subheader(job.get('title', 'No Title'))
+        st.write(f"Location: {job.get('location', 'Unknown')}")
+        st.write(f"Company: {job.get('company', 'Unknown')}")
+        st.write(f"Description: {job.get('description', 'No Description')}")
+        st.write("---")
 
 if st.button("search"):
     if job_title or location or company:
-        # Send message to SQS
-        response = sqs.send_message(
-            QueueUrl=queue_url,
-            MessageBody=(
-                json.dumps({
-                    'job_title': job_title,
-                    'location': location,
-                    'company': company
-                })
-            )
-        )
-        st.error('Please Login to be able to use the saved search notification service.')
+        if st.session_state.button_login_pressed:
+            try:
+                # Send message to SQS
+                response = sqs.send_message(
+                    QueueUrl=queue_url,
+                    MessageBody=(
+                        json.dumps({
+                            'job_title': job_title,
+                            'location': location,
+                            'company': company
+                        })
+                    )
+                )
+                st.success('Search saved successfully.')
+            except ClientError as e:
+                st.error(f"Could not send message to SQS queue: {e.response['Error']['Message']}")
+                st.error(f"Error code: {e.response['Error']['Code']}")
+                st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
+        else:
+            st.warning(
+                'You must be logged in to save searches. Press search again to see results without saving the search.')
     else:
         st.error("Please fill out a field before searching.")
+
+# Fetch and display all jobs from the Jobs table
+jobs = get_all_jobs()
+display_jobs(jobs)
