@@ -56,7 +56,7 @@ def scrape_jobs(role: str, location: str, company: str):
     try:
         results = notifs.perform_search(role, location, company)
         print(results)
-        return {"status": "success"}
+        return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
