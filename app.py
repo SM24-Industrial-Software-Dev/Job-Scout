@@ -140,8 +140,7 @@ if st.button("search"):
             st.error(f"Could not send message to SQS queue: {e.response['Error']['Message']}")
             st.error(f"Error code: {e.response['Error']['Code']}")
             st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
-        st.warning(
-            'You must be logged in to save searches. Press search again to see results without saving the search.')
+        st.warning('Warning: You must be logged in to save searches.')
     else:
         st.error("Please fill out a field before searching.")
 
