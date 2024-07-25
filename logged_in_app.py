@@ -12,10 +12,13 @@ queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # 
 # Initialize the next_task_id in Streamlit's session state
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
+if 'user_info' not in st.session_state:
+    st.session_state.user_info = None
 
 def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
+
 
 st.title("JobScout")
 st.text(
@@ -24,16 +27,17 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
+
 job_title = st.text_input("Job Title:")
 states = [
-    '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming'
+        '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+        'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+        'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+        'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+        'Wisconsin', 'Wyoming'
 ]
 location = st.selectbox(label="Location:", options=states)
 company = st.text_input("Company:")
@@ -57,12 +61,13 @@ with st.sidebar:
 
 if st.button("search"):
     if job_title or location or company:
+        user_id = st.session_state.user_info['sub']
         job_search_data = {
             'task_id': next_task_id(),
             'interval': "PT1M",
             'retries': 3,
             'type': "notif",
-            'user_id': 1,
+            'user_id': user_id,
             'email': "email",
             'job_id': None,
             'title': job_title,
