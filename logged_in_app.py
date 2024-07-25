@@ -81,15 +81,12 @@ else:
     if st.button("search"):
         if job_title or location or company:
             user_id = st.session_state.user_info['sub']  # Get the user ID
-            email = st.session_state.user_info['email']  # Get the user email
-
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': "PT1M",
                 'retries': 3,
                 'type': "notif",
                 'user_id': user_id,  # Use the retrieved user ID
-                'email': email,      # Use the retrieved email
                 'job_id': None,
                 'title': job_title,
                 'description': None,
