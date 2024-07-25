@@ -2,7 +2,16 @@ import streamlit as st
 import requests
 import json
 import boto3
+from pydantic import BaseModel, Field
+from datetime import datetime, timezone
 
+def get_current_time() -> int:
+    now = datetime.now(timezone.utc)
+    return get_unix_timestamp_by_min(now)
+
+def get_unix_timestamp_by_min(dt: datetime) -> int:
+    dt = dt.replace(second=0, microsecond=0)
+    return int(dt.timestamp())
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
@@ -88,6 +97,7 @@ else:
                 'task_id': next_task_id(),
                 'interval': "PT1M",
                 'retries': 3,
+                'created': Field(default_factory=get_current_time),
                 'type': "notif",
                 'user_id': user_id,
                 'job_id': None,
