@@ -1,6 +1,3 @@
-import os
-import subprocess
-import psutil
 from flask import Flask, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
 import boto3
@@ -8,6 +5,8 @@ from botocore.exceptions import ClientError
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
+app.config['SESSION_COOKIE_SAMESITE'] = "None"
+app.config['SESSION_COOKIE_SECURE'] = True
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
@@ -48,9 +47,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    # Redirect to app.py after logout
     return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8501')
-
 
 @app.route('/callback')
 def authorize():
@@ -60,31 +57,21 @@ def authorize():
     user_info = resp.json()
     session['user'] = user_info
 
-    app.loggerr.info("User info stored in session: %s", session.get('user'))
-
-    # Store user information in DynamoDB
     try:
         user_item = {
-            'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
+            'id': user_info['sub'],
             'email': user_info['email'],
-            'name': user_info.get('name', ''),
-            #'preferred_job_type': None,
-            #'preferred_location': None
+            'name': user_info.get('name', '')
         }
         users_table.put_item(Item=user_item)
     except ClientError as e:
-        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-            # Handle case where user already exists (optional)
-            pass
-        else:
-            print(f"Error storing user in DynamoDB: {e}")
+        print(f"Error storing user in DynamoDB: {e}")
 
-    return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502')  # Redirect to Streamlit logged_in_app.py
+    return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502')
 
 @app.route('/is_logged_in')
 def is_logged_in():
     user = session.get('user')
-    app.logger.info("Checking login status. User info: %s", user)
     if user:
         return jsonify(logged_in=True, user=user)
     else:

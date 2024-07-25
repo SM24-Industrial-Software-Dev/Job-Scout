@@ -10,7 +10,7 @@ queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # 
 # Initialize the next_task_id in Streamlit's session state
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
-
+    
 if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
