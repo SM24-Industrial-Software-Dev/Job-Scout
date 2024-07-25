@@ -6,12 +6,14 @@ import subprocess
 import uvicorn
 import logging
 import notifs
+import refresh
 import os
 from pydantic import BaseModel
 from task_sched_dbs.Master import Master
 from task_sched_dbs.Tables import Notifs, Task
 from flask_application import app as flask_app
 from scraper import Scraper
+#from jobspy_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -25,6 +27,10 @@ redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/cal
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(18)
+#scraper = JobScraper()
+#scraper.scrape_jobs()
+#scraper.print_summary()
+#scraper.save_jobs_to_json("jobs.json")
 scraper = Scraper()
 scraper.linkedin_scraper()
 
@@ -127,19 +133,30 @@ def run_logged_in_app():
 def run_streamlit():
     subprocess.Popen(['streamlit', 'run', 'app.py', '--server.port', '8501'])
 
-if __name__ == "__main__":
+def start_sqs_listener(process_message_function, thread_name):
+    while True:
+        process_message_function()
 
+if __name__ == "__main__":
     fastapi_thread = threading.Thread(target=run_fastapi)
     flask_thread = threading.Thread(target=run_flask)
     streamlit_thread = threading.Thread(target=run_streamlit)
     logged_in_app_thread = threading.Thread(target=run_logged_in_app)
 
+    # SQS listener threads
+    refresh_listener_thread = threading.Thread(target=start_sqs_listener, args=(refresh.process_refresh_message, 'refresh_listener'))
+    notifs_listener_thread = threading.Thread(target=start_sqs_listener, args=(notifs.process_notifs_message, 'notifs_listener'))
+
     fastapi_thread.start()
     flask_thread.start()
     streamlit_thread.start()
     logged_in_app_thread.start()
+    refresh_listener_thread.start()
+    notifs_listener_thread.start()
 
     fastapi_thread.join()
     flask_thread.join()
     streamlit_thread.join()
     logged_in_app_thread.join()
+    refresh_listener_thread.join()
+    notifs_listener_thread.join()
