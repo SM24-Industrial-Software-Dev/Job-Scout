@@ -42,7 +42,7 @@ class Impl:
         except Exception as e:
             print(f"Error sending message to {queue_type} queue: {e}")
     
-    def receive_messages(self, type: str, max_messages=9, wait_time_seconds=10):
+    def receive_messages(self, type: str, max_messages=1, wait_time_seconds=10):
         queue_url = self.refresh_queue_url if type == 'refresh' else self.notif_queue_url if type == 'notif' else None
         try:
             response = self.sqs_client.receive_message(
