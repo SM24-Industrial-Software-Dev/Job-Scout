@@ -1,23 +1,49 @@
+import json
 from jobspy import scrape_jobs
 
-# Scrape jobs from different sites
-jobs = scrape_jobs(
-    site_name=["indeed", "linkedin", "zip_recruiter", "glassdoor"],
-    search_term="",
-    location="",
-    results_wanted=20,
-    hours_old=72,  # (only Linkedin/Indeed is hour specific, others round up to days old)
-    country_indeed='USA',  # only needed for indeed / glassdoor
+class JobScraper:
+    def __init__(self):
+        self.jobs = None
 
-    # linkedin_fetch_description=True # get full description and direct job url for linkedin (slower)
-    # proxies=["208.195.175.46:65095", "208.195.175.45:65095", "localhost"],
-)
+    def scrape_jobs(self):
+        # Hardcoded parameters
+        site_names = ["indeed", "linkedin", "zip_recruiter", "glassdoor"]
+        search_term = ""  # Broad search
+        location = ""     # Broad search
+        results_wanted = 20
+        hours_old = 72
+        country_indeed = 'USA'
+        proxies = None  # No proxies by default
 
-print(f"Found {len(jobs)} jobs")
-print(jobs.head())
+        self.jobs = scrape_jobs(
+            site_name=site_names,
+            search_term=search_term,
+            location=location,
+            results_wanted=results_wanted,
+            hours_old=hours_old,
+            country_indeed=country_indeed,
+            proxies=proxies
+        )
+        return self.jobs
 
-# Convert jobs DataFrame to JSON and save to a file
-jobs_json = jobs.to_json(orient='records', lines=True)
+    def save_jobs_to_json(self, file_path):
+        if self.jobs is not None:
+            jobs_json = self.jobs.to_json(orient='records', lines=True)
+            with open(file_path, "w") as file:
+                file.write(jobs_json)
+            return f"Jobs saved to {file_path}"
+        else:
+            return "No jobs to save. Please scrape jobs first."
 
-with open("jobs.json", "w") as file:
-    file.write(jobs_json)
+    def print_summary(self):
+        if self.jobs is not None:
+            print(f"Found {len(self.jobs)} jobs")
+            print(self.jobs.head())
+        else:
+            print("No jobs to display. Please scrape jobs first.")
+
+# Usage
+scraper = JobScraper()
+scraper.scrape_jobs()
+scraper.print_summary()
+scraper.save_jobs_to_json("jobs.json")
