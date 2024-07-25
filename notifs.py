@@ -82,7 +82,7 @@ def process_notifs_message():
     try:
         response = sqs_client.receive_message(
             QueueUrl=NOTIFS_QUEUE_URL,
-            MaxNumberOfMessages=1,
+            MaxNumberOfMessages=5,
             WaitTimeSeconds=10
         )
         if 'Messages' in response:
