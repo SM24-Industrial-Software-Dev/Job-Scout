@@ -88,7 +88,7 @@ def process_notifs_message():
         if 'Messages' in response:
             for message in response['Messages']:
                 body = json.loads(message['Body'])
-                job_title = body['job_title']
+                job_title = body['title']
                 location = body['location']
                 company = body['company']
                 user_email = body['email']
