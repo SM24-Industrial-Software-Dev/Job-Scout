@@ -1,3 +1,4 @@
+import logging
 from flask import Flask, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
 import boto3
@@ -12,12 +13,14 @@ app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.go
 app.config['GOOGLE_SECRET'] = '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'
 app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
 
+# Initialize DynamoDB
 try:
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
     users_table = dynamodb.Table('Users')
 except ClientError as e:
-    print(f"Error initializing DynamoDB: {e}")
+    app.logger.error(f"Error initializing DynamoDB: {e}")
 
+# Initialize OAuth
 oauth = OAuth(app)
 google = oauth.register(
     name='google',
@@ -51,31 +54,39 @@ def logout():
 
 @app.route('/callback')
 def authorize():
-    token = google.authorize_access_token()
-    resp = google.get('https://openidconnect.googleapis.com/v1/userinfo')
-    resp.raise_for_status()
-    user_info = resp.json()
-    session['user'] = user_info
-
     try:
-        user_item = {
-            'id': user_info['sub'],
-            'email': user_info['email'],
-            'name': user_info.get('name', '')
-        }
-        users_table.put_item(Item=user_item)
-    except ClientError as e:
-        print(f"Error storing user in DynamoDB: {e}")
+        token = google.authorize_access_token()
+        resp = google.get('https://openidconnect.googleapis.com/v1/userinfo')
+        resp.raise_for_status()
+        user_info = resp.json()
+        session['user'] = user_info
 
-    return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502')
+        app.logger.info("User info stored in session: %s", session.get('user'))
+
+        try:
+            user_item = {
+                'id': user_info['sub'],
+                'email': user_info['email'],
+                'name': user_info.get('name', '')
+            }
+            users_table.put_item(Item=user_item)
+        except ClientError as e:
+            app.logger.error(f"Error storing user in DynamoDB: {e}")
+
+        return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502')
+    except Exception as e:
+        app.logger.error(f"Error in callback: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/is_logged_in')
 def is_logged_in():
     user = session.get('user')
+    app.logger.info("Checking login status. User info: %s", user)
     if user:
         return jsonify(logged_in=True, user=user)
     else:
         return jsonify(logged_in=False)
 
 if __name__ == '__main__':
+    app.debug = True  # Enable debug mode
     app.run(port=8080)
