@@ -19,7 +19,18 @@ def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
 
-
+def check_login_status():
+    try:
+        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
+        if response.status_code == 200:
+            data = response.json()
+            if data.get('logged_in'):
+                st.session_state.user_info = data['user']
+                return True
+            return False
+    except Exception as e:
+        st.error(f"An error occured: {e}")
+        return False
 st.title("JobScout")
 st.text(
     "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
@@ -27,9 +38,11 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
-
-job_title = st.text_input("Job Title:")
-states = [
+if not st.session_state.user_info and not check_login_status():
+    st.error("You must be logged in to use this application.")
+else:
+    job_title = st.text_input("Job Title:")
+    states = [
         '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
         'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
         'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
@@ -38,12 +51,12 @@ states = [
         'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
         'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
         'Wisconsin', 'Wyoming'
-]
-location = st.selectbox(label="Location:", options=states)
-company = st.text_input("Company:")
+    ]
+    location = st.selectbox(label="Location:", options=states)
+    company = st.text_input("Company:")
 
-login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
+    login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
+    logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
