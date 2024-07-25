@@ -144,19 +144,19 @@ if __name__ == "__main__":
     logged_in_app_thread = threading.Thread(target=run_logged_in_app)
 
     # SQS listener threads
-    refresh_listener_thread = threading.Thread(target=start_sqs_listener, args=(refresh.process_refresh_message, 'refresh_listener'))
+    #refresh_listener_thread = threading.Thread(target=start_sqs_listener, args=(refresh.process_refresh_message, 'refresh_listener'))
     notifs_listener_thread = threading.Thread(target=start_sqs_listener, args=(notifs.process_notifs_message, 'notifs_listener'))
 
     fastapi_thread.start()
     flask_thread.start()
     streamlit_thread.start()
     logged_in_app_thread.start()
-    refresh_listener_thread.start()
+    #refresh_listener_thread.start()
     notifs_listener_thread.start()
 
     fastapi_thread.join()
     flask_thread.join()
     streamlit_thread.join()
     logged_in_app_thread.join()
-    refresh_listener_thread.join()
+    #refresh_listener_thread.join()
     notifs_listener_thread.join()
