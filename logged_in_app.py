@@ -6,14 +6,11 @@ import boto3
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-<<<<<<< HEAD
+
 queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
 # Verify that the queue_url is set correctly
 st.write(f"Queue URL: {queue_url}")
-=======
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'
->>>>>>> 896a3f25ddba9b19dc3ccfc09521021dc562da32
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
