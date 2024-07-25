@@ -95,18 +95,18 @@ def process_notifs_message():
 
                 # Perform search
                 search_results = perform_search(job_title, location, company)
-
+                print(search_results)
                 # Send email with results
-                send_email(
-                    subject=f"Job Search Results for {job_title} in {location} at {company}",
-                    recipients=[user_email],
-                    body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
-                )
-
-                sqs_client.delete_message(
-                    QueueUrl=NOTIFS_QUEUE_URL,
-                    ReceiptHandle=message['ReceiptHandle']
-                )
+                #send_email(
+                 #   subject=f"Job Search Results for {job_title} in {location} at {company}",
+                  #  recipients=[user_email],
+                   # body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
+                #)
+#
+#                sqs_client.delete_message(
+ #                   QueueUrl=NOTIFS_QUEUE_URL,
+  #                  ReceiptHandle=message['ReceiptHandle']
+   #             )
     except Exception as e:
         logger.error(f"Error processing notifs message: {str(e)}")
 
