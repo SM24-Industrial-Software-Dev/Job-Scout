@@ -102,11 +102,11 @@ def process_notifs_message():
                   #  recipients=[user_email],
                    # body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
                 #)
-#
-#                sqs_client.delete_message(
- #                   QueueUrl=NOTIFS_QUEUE_URL,
-  #                  ReceiptHandle=message['ReceiptHandle']
-   #             )
+
+                sqs_client.delete_message(
+                    QueueUrl=NOTIFS_QUEUE_URL,
+                    ReceiptHandle=message['ReceiptHandle']
+                )
     except Exception as e:
         logger.error(f"Error processing notifs message: {str(e)}")
 
