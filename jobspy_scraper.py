@@ -1,9 +1,20 @@
 import json
 from jobspy import scrape_jobs
 
+<<<<<<< HEAD
 class JobScraper:
     def __init__(self):
         self.jobs = None
+=======
+# Scrape jobs from different sites
+jobs = scrape_jobs(
+    site_name=["indeed", "linkedin", "zip_recruiter", "glassdoor"],
+    search_term="",
+    location="",
+    results_wanted=20,
+    hours_old=72,  # (only Linkedin/Indeed is hour specific, others round up to days old)
+    country_indeed='USA',  # only needed for indeed / glassdoor
+>>>>>>> f2e5dd5ab7c79cfa0523c2ce111a9e7bb6aa8f5c
 
     def scrape_jobs(self):
         # Hardcoded parameters
