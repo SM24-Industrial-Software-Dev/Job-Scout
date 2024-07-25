@@ -6,8 +6,8 @@ from botocore.exceptions import ClientError
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
-app.config['SESSION_COOKIE_SAMESITE'] = "None"
-app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = "Lax"
+app.config['SESSION_COOKIE_SECURE'] = False
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
