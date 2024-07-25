@@ -42,9 +42,9 @@ class Scheduler:
                 })
             else:
                 raise UnknownTaskTypeError(t)
-            self.table_set.tasks.put_item(Item=task_item)
+            self.table_set.dynamodb.Table('tasks').put_item(Item=task_item)
             print("\033[94mtask " + str(t.task_id) + " added to tasks table!\033[0m")
-            self.table_set.executions.put_item(
+            self.table_set.dynamodb.Table('executions').put_item(
                 Item={
                     'task_id': t.task_id,
                     'next_exec_time': self.get_unix_timestamp_by_min(datetime.now() + isodate.parse_duration(t.interval)),
@@ -68,11 +68,11 @@ class Scheduler:
             if not segment:
                 raise Exception(f"No segment found for task_id {task_id}")
             # Delete task from executions table
-            self.table_set.executions.delete_item(
+            self.table_set.dynamodb.Table('executions').delete_item(
                 Key={'task_id': task_id, 'segment': segment}
             )
             # Delete task from tasks table
-            self.table_set.tasks.delete_item(
+            self.table_set.dynamodb.Table('tasks').delete_item(
                 Key={'task_id': task_id}
             )
         except Exception as e:
@@ -104,7 +104,7 @@ class Scheduler:
 
     def get_segment(self, task_id: int):
         try:
-            response = self.table_set.executions.query(
+            response = self.table_set.dynamodb.Table('executions').query(
                 KeyConditionExpression=Key('task_id').eq(task_id)
             )
             items = response.get('Items', [])
@@ -116,7 +116,7 @@ class Scheduler:
             raise Exception(f"Failed to get segment for task_id {task_id}: {e}")
     
     def get_task(self, task_id: int):
-        response = self.table_set.tasks.query(
+        response = self.table_set.dynamodb.Table('tasks').query(
             KeyConditionExpression=Key('task_id').eq(task_id)
         )
         items = response.get('Items', [])
@@ -140,7 +140,7 @@ class Scheduler:
          
     def query_executions_by_next_exec_time(self, next_exec_time):
         try:
-            response = self.table_set.executions.query(
+            response = self.table_set.dynamodb.Table('executions').query(
                 KeyConditionExpression=Key('next_exec_time').eq(next_exec_time)
             )
 

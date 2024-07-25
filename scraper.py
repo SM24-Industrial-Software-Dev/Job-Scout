@@ -10,6 +10,7 @@ class Scraper:
     def __init__(self, region_name='us-east-2', table_name='Jobs'):
         self.dynamodb = boto3.resource('dynamodb', region_name=region_name)
         self.table = self.dynamodb.Table(table_name)
+        self.data = []
 
     def linkedin_scraper(self, page_number=0, job_counter:int = 0):
         base_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0&start='
@@ -60,7 +61,7 @@ class Scraper:
 
         if len(jobs) == 0 or page_number >= 100:
             with open('linkedin-jobs.json', 'w', encoding='utf-8') as json_file:
-                json.dump(data, json_file, ensure_ascii=False, indent=4)
+                json.dump(self.data, json_file, ensure_ascii=False, indent=4)
             print('File closed')
             return
 
