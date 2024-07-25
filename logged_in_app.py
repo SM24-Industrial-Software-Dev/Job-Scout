@@ -3,9 +3,13 @@ import requests
 import json
 import boto3
 
+
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL
+queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
+
+# Verify that the queue_url is set correctly
+st.write(f"Queue URL: {queue_url}")
 
 # Initialize the next_task_id in Streamlit's session state
 if 'next_task_id_counter' not in st.session_state:
