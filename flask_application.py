@@ -1,3 +1,4 @@
+import os
 import logging
 from flask import Flask, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
@@ -6,8 +7,8 @@ from botocore.exceptions import ClientError
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
-app.config['SESSION_COOKIE_SAMESITE'] = "Lax"
-app.config['SESSION_COOKIE_SECURE'] = False
+app.config['SESSION_COOKIE_SAMESITE'] = "Lax"  # Use 'Lax' for CSRF protection over HTTP
+app.config['SESSION_COOKIE_SECURE'] = False  # Set to False since using HTTP
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
@@ -15,7 +16,7 @@ app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-3-21-189-151.us-east-2.compute.a
 
 # Initialize DynamoDB
 try:
-    dynamodb = boto3.resource('dynamodb', region_name='us-east-1')
+    dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
     users_table = dynamodb.Table('Users')
 except ClientError as e:
     app.logger.error(f"Error initializing DynamoDB: {e}")
