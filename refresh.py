@@ -123,7 +123,8 @@ def process_refresh_message():
             logger.info(f'Received refresh message: {message}')
             try:
                 # Call the Linkedin scraper (refreshing the database)
-                linkedin_scraper("default_job_title", "default_location", 0)
+                #linkedin_scraper("default_job_title", "default_location", 0)
+                print_message()
                 
                 # Delete the message from the queue after processing
                 sqs_client.delete_message(
@@ -139,6 +140,21 @@ def process_refresh_message():
         logger.error(f'Credentials error: {str(e)}')
     except Exception as e:
         logger.error(f'Unexpected error: {str(e)}')
+
+def print_message():
+    message = """
+        ███╗   ███╗ █████╗ ███████╗███████╗ █████╗  ██████╗ ███████╗    ██████╗ ███████╗███████╗███╗   ██╗██████╗ ██╗███████╗██████╗ 
+        ████╗ ████║██╔══██╗╚══███╔╝██╔════╝██╔══██╗██╔════╝ ██╔════╝    ██╔══██╗██╔════╝██╔════╝████╗  ██║██╔══██╗██║██╔════╝██╔══██╗
+        ██╔████╔██║███████║  ███╔╝ █████╗  ███████║██║  ███╗█████╗      ██████╔╝█████╗  █████╗  ██╔██╗ ██║██████╔╝██║█████╗  ██████╔╝
+        ██║╚██╔╝██║██╔══██║ ███╔╝  ██╔══╝  ██╔══██║██║   ██║██╔══╝      ██╔═══╝ ██╔══╝  ██╔══╝  ██║╚██╗██║██╔═══╝ ██║██╔══╝  ██╔══██╗
+        ██║ ╚═╝ ██║██║  ██║███████╗███████╗██║  ██║╚██████╔╝███████╗    ██║     ███████╗███████╗██║ ╚████║██║     ██║███████╗██║  ██║
+        ╚═╝     ╚═╝╚═╝  ╚═╝╚══════╝╚══════╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝    ╚═╝     ╚══════╝╚══════╝╚═╝  ╚═══╝╚═╝     ╚═╝╚══════╝╚═╝  ╚═╝
+            """
+    green_color_code = "\033[92m"
+    reset_color_code = "\033[0m"
+    print(f"{green_color_code}{message}{reset_color_code}")
+
+    print_message()
 
 if __name__ == "__main__":
     while True:
