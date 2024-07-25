@@ -4,6 +4,8 @@ from flask import Flask, redirect, url_for, session, jsonify
 from authlib.integrations.flask_client import OAuth
 import boto3
 from botocore.exceptions import ClientError
+from flask_cors import CORS
+
 
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
@@ -13,6 +15,8 @@ app.config['SESSION_COOKIE_SECURE'] = False  # Set to False since using HTTP
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
 app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
+
+CORS(app)
 
 # Initialize DynamoDB
 try:
