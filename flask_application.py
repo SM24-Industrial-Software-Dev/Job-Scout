@@ -60,6 +60,8 @@ def authorize():
     user_info = resp.json()
     session['user'] = user_info
 
+    app.loggerr.info("User info stored in session: %s", session.get('user'))
+
     # Store user information in DynamoDB
     try:
         user_item = {
@@ -82,6 +84,7 @@ def authorize():
 @app.route('/is_logged_in')
 def is_logged_in():
     user = session.get('user')
+    app.logger.info("Checking login status. User info: %s", user)
     if user:
         return jsonify(logged_in=True, user=user)
     else:
