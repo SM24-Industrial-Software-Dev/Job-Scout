@@ -131,7 +131,7 @@ if st.button("search"):
                         st.write(f"**Title:** {title}")
                         st.write(f"**Company:** {company}")
                         st.write(f"**Location:** {location}")
-                        st.markdown(f"[Job Link]({link})")  # Clickable link
+                        st.markdown(f"[Link to Apply]({link})")  # Clickable link
                         st.write("---")  # Separator between jobs
 
                 else:
@@ -183,4 +183,6 @@ if st.button("search"):
                 )
             )
         else:
-            st.error("Please fill out a field before searching.")
+            st.error("Please choose a notification setting.")
+    else:
+        st.error("Please fill out a field before searching.")
