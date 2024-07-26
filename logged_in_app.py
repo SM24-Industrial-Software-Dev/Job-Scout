@@ -99,6 +99,7 @@ with st.sidebar:
 if st.button("search"):
     if job_title or location or company:
         if frequency == 'One-Time Instant Results':
+            print("once")
             job_search_data = {
             'title': job_title,
             'company': company,
@@ -118,12 +119,13 @@ if st.button("search"):
                 st.error(f"An error occurred: {e}")    
         elif frequency:
             #user_id = st.session_state.user_info['sub']
+            print("saved")
             interval = str(convert_frequency_to_interval(frequency))
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': interval,
                 'retries': 3,
-                'created': int(get_current_time),
+                'created': int(get_current_time()),
                 'type': "notif",
                 'user_id': 1,
                 'job_id': None,
