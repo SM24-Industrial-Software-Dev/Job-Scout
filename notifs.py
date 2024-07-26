@@ -111,7 +111,7 @@ def process_notifs_message():
         logger.error(f"Error processing notifs message: {str(e)}")
 
 # Function to perform search
-def perform_search(job_title, location, company):
+def perform_search(job_title: str, location: str, company: str):
     table = dynamodb.Table('Jobs')
     search_results = []
 
@@ -119,13 +119,16 @@ def perform_search(job_title, location, company):
     response = table.scan(
         FilterExpression=Attr('title').contains(job_title) & Attr('location').contains(location) & Attr('company').contains(company)
     )
+    
     for job in response['Items']:
-        search_results.append(f"Title: {job['title']}, Company: {job['company']}, Location: {job['location']}, Link: {job['link']}")
+        search_results.append({
+            'title': job.get('title', 'N/A'),
+            'company': job.get('company', 'N/A'),
+            'location': job.get('location', 'N/A'),
+            'link': job.get('link', '#')
+        })
 
-    if not search_results:
-        return "No matching jobs found."
-
-    return "\n".join(search_results)
+    return search_results if search_results else [{"title": "No matching jobs found.", "company": "", "location": "", "link": ""}]
 
 if __name__ == "__main__":
     while True:
