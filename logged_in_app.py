@@ -29,18 +29,6 @@ def next_task_id():
     return st.session_state.next_task_id_counter
 
 # Check login status function
-def check_login_status():
-    try:
-        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-        response.raise_for_status()  # Raise an exception for HTTP errors
-        data = response.json()
-        st.write("Login status response:", data)  # Debugging: Output the response data
-        if data.get('logged_in'):
-            st.session_state.user_info = data['user']
-        else:
-            st.session_state.user_info = None
-    except requests.exceptions.RequestException as e:
-        st.error(f"Failed to check login status: {e}")
 
 st.title("JobScout")
 st.text(
@@ -50,14 +38,11 @@ st.text(
     "\nmanual queries and real-time results.")
 
 # Fetch login status
-check_login_status()
 
-if st.session_state.user_info is None:
-    st.write("User not logged in.")
-else:
-    st.write("User info found in session state:", st.session_state.user_info)
-    job_title = st.text_input("Job Title:")
-    states = [
+
+st.write("User info found in session state:", st.session_state.user_info)
+job_title = st.text_input("Job Title:")
+states = [
         '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
         'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
         'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
@@ -66,37 +51,36 @@ else:
         'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
         'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
         'Wisconsin', 'Wyoming'
-    ]
-    location = st.selectbox(label="Location:", options=states)
-    company = st.text_input("Company:")
+]
+location = st.selectbox(label="Location:", options=states)
+company = st.text_input("Company:")
 
-    login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-    logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
+login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
+logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 
-    if 'button_login_pressed' not in st.session_state:
+if 'button_login_pressed' not in st.session_state:
         st.session_state.button_login_pressed = False
 
     # Function to handle logout press
-    def handle_button_logout_press():
+def handle_button_logout_press():
         st.session_state.button_login_pressed = False
         st.session_state.user_info = None
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
 
     # Sidebar for floating menu
-    with st.sidebar:
+with st.sidebar:
         if st.button("Logout"):
             handle_button_logout_press()
 
-    if st.button("search"):
+if st.button("search"):
         if job_title or location or company:
-            user_id = st.session_state.user_info['sub']
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': "PT1M",
                 'retries': 3,
                 'created': Field(default_factory=get_current_time),
                 'type': "notif",
-                'user_id': user_id,
+                'user_id': 1,
                 'job_id': None,
                 'title': job_title,
                 'description': None,
