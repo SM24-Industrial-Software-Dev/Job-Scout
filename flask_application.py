@@ -44,7 +44,7 @@ def create_users_table():
             AttributeDefinitions=[
                 {
                     'AttributeName': 'id',
-                    'AttributeType': 'S'
+                    'AttributeType': 'N'
                 }
             ],
             ProvisionedThroughput={
