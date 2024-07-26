@@ -2,10 +2,24 @@ import streamlit as st
 import requests
 import json
 import boto3
+from pydantic import BaseModel, Field
+from datetime import datetime, timezone
+
+def get_current_time() -> int:
+    now = datetime.now(timezone.utc)
+    return get_unix_timestamp_by_min(now)
+
+def get_unix_timestamp_by_min(dt: datetime) -> int:
+    dt = dt.replace(second=0, microsecond=0)
+    return int(dt.timestamp())
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'
+
+queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
+
+# Verify that the queue_url is set correctly
+#st.write(f"Queue URL: {queue_url}")
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
@@ -70,6 +84,7 @@ else:
                 'task_id': next_task_id(),
                 'interval': "PT1M",
                 'retries': 3,
+                'created': Field(default_factory=get_current_time),
                 'type': "notif",
                 'user_id': user_id,
                 'job_id': None,

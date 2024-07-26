@@ -18,7 +18,6 @@ except ClientError as e:
 sqs = boto3.client('sqs', region_name='us-east-2')
 queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
 
-
 st.title("JobScout")
 st.text(
     "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
@@ -26,7 +25,7 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
-job_title = st.text_input("Job Title:") # can add default value
+job_title = st.text_input("Job Title:")  # can add default value
 states = [
     '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
     'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
@@ -37,8 +36,8 @@ states = [
     'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
     'Wisconsin', 'Wyoming'
 ]
-location = st.selectbox(label="Location:", options=states) # make empty string the default for entire U.S.
-company = st.text_input("Company:") # can add default value
+location = st.selectbox(label="Location:", options=states)  # make empty string the default for entire U.S.
+company = st.text_input("Company:")  # can add default value
 
 login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
 logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
@@ -47,6 +46,7 @@ is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
 
+
 # Function to check login status
 def check_login_status():
     response = requests.get(is_logged_in_url)
@@ -54,16 +54,19 @@ def check_login_status():
         data = response.json()
         st.session_state.button_login_pressed = data['logged_in']
 
+
 # Function to handle login press
 def handle_button_login_press():
     st.session_state.button_login_pressed = True
     st.markdown(f'<meta http-equiv="refresh" content="0; url={login_url}">', unsafe_allow_html=True)
     check_login_status()
 
+
 # Function to handle logout press
 def handle_button_logout_press():
     st.session_state.button_login_pressed = False
     st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
+
 
 # Sidebar for floating menu
 with st.sidebar:
@@ -76,6 +79,7 @@ with st.sidebar:
         if st.button("Logout"):
             handle_button_logout_press()
 
+
 # Function to retrieve all jobs from DynamoDB
 def get_all_jobs():
     try:
@@ -87,6 +91,7 @@ def get_all_jobs():
         st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
         return []
 
+
 # Display the jobs in Streamlit
 def display_jobs(jobs):
     for job in jobs:
@@ -95,6 +100,7 @@ def display_jobs(jobs):
         st.write(f"Company: {job.get('company', 'Unknown')}")
         st.write(f"Description: {job.get('description', 'No Description')}")
         st.write("---")
+
 
 # Function to retrieve messages from SQS
 # def retrieve_messages():
@@ -114,29 +120,27 @@ def display_jobs(jobs):
         st.write(f"Description: {job.get('description', 'No Description')}")
         st.write("---")
 
+
 if st.button("search"):
     if job_title or location or company:
-        if st.session_state.button_login_pressed:
-            try:
-                # Send message to SQS
-                response = sqs.send_message(
-                    QueueUrl=queue_url,
-                    MessageBody=(
-                        json.dumps({
-                            'job_title': job_title,
-                            'location': location,
-                            'company': company
-                        })
-                    )
+        try:
+            # Send message to SQS
+            response = sqs.send_message(
+                QueueUrl=queue_url,
+                MessageBody=(
+                    json.dumps({
+                        'job_title': job_title,
+                        'location': location,
+                        'company': company
+                    })
                 )
-                st.success('Search saved successfully.')
-            except ClientError as e:
-                st.error(f"Could not send message to SQS queue: {e.response['Error']['Message']}")
-                st.error(f"Error code: {e.response['Error']['Code']}")
-                st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
-        else:
-            st.warning(
-                'You must be logged in to save searches. Press search again to see results without saving the search.')
+            )
+            st.success('Searching')
+        except ClientError as e:
+            st.error(f"Could not send message to SQS queue: {e.response['Error']['Message']}")
+            st.error(f"Error code: {e.response['Error']['Code']}")
+            st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
+        st.warning('Warning: You must be logged in to save searches.')
     else:
         st.error("Please fill out a field before searching.")
 

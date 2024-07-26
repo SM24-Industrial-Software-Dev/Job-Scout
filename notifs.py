@@ -82,26 +82,26 @@ def process_notifs_message():
     try:
         response = sqs_client.receive_message(
             QueueUrl=NOTIFS_QUEUE_URL,
-            MaxNumberOfMessages=1,
+            MaxNumberOfMessages=5,
             WaitTimeSeconds=10
         )
         if 'Messages' in response:
             for message in response['Messages']:
                 body = json.loads(message['Body'])
-                job_title = body['job_title']
+                job_title = body['title']
                 location = body['location']
                 company = body['company']
                 user_email = body['email']
 
                 # Perform search
                 search_results = perform_search(job_title, location, company)
-
+                print(search_results)
                 # Send email with results
-                send_email(
-                    subject=f"Job Search Results for {job_title} in {location} at {company}",
-                    recipients=[user_email],
-                    body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
-                )
+                #send_email(
+                 #   subject=f"Job Search Results for {job_title} in {location} at {company}",
+                  #  recipients=[user_email],
+                   # body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
+                #)
 
                 sqs_client.delete_message(
                     QueueUrl=NOTIFS_QUEUE_URL,
