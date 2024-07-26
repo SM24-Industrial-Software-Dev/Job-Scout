@@ -114,7 +114,11 @@ if st.button("search"):
                 )
 
                 if response.status_code == 200:
-                    st.success('Search request sent! Check your results shortly.')
+                    # Parse the JSON response
+                    results = response.json()
+                    # Display the results in Streamlit
+                    st.success('Search request sent! Check your results below:')
+                    st.write(results)
                 else:
                     st.error(f"Failed to add job search. Error: {response.text}")
             except Exception as e:
