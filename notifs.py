@@ -91,7 +91,9 @@ def process_notifs_message():
                 job_title = body['title']
                 location = body['location']
                 company = body['company']
-                user_email = body['email']
+                user_id = body['user_id']
+
+                email = get_user_email(user_id)
 
                 # Perform search
                 search_results = perform_search(job_title, location, company)
@@ -99,7 +101,7 @@ def process_notifs_message():
                 # Send email with results
                 send_email(
                     subject=f"Job Search Results for {job_title} in {location} at {company}",
-                    recipients=[user_email],
+                    recipients=[email],
                     body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
                 )
 
@@ -130,6 +132,26 @@ def perform_search(job_title: str, location: str, company: str):
 
     return search_results if search_results else [{"title": "No matching jobs found.", "company": "", "location": "", "link": ""}]
 
+def get_user_email(user_id: str) -> str:
+    # Reference the Users table
+    table = dynamodb.Table('Users')
+    
+    try:
+        # Perform the query
+        response = table.get_item(
+            Key={'id': user_id}
+        )
+        
+        # Check if the user was found
+        if 'Item' in response:
+            # Extract and return the email address
+            return response['Item'].get('email', 'Email not found')
+        else:
+            return 'User not found'
+    except ClientError as e:
+        print(f"Error querying table: {str(e)}")
+        return 'Error querying table'
+    
 if __name__ == "__main__":
     while True:
         process_notifs_message()
