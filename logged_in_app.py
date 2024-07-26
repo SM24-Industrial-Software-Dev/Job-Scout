@@ -24,27 +24,10 @@ queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
 
-if 'user_info' not in st.session_state:
-    st.session_state.user_info = None
-
 def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
 
-def check_login_status():
-    try:
-        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-        st.write("Response from login status check:", response.text)
-        if response.status_code == 200:
-            data = response.json()
-            st.write("Parsed response data:", data)
-            if data.get('logged_in'):
-                st.session_state.user_info = data['user']
-                return True
-        return False
-    except Exception as e:
-        st.error(f"An error occurred while checking login status: {e}")
-        return False
 
 st.title("JobScout")
 st.text(
@@ -56,8 +39,7 @@ st.text(
 # Check login status
 if not st.session_state.user_info:
     st.write("User info not found in session state, checking login status...")
-    if not check_login_status():
-        st.error("You must be logged in to use this application.")
+    
 else:
     st.write("User info found in session state:", st.session_state.user_info)
     job_title = st.text_input("Job Title:")
@@ -79,6 +61,11 @@ else:
 
     if 'button_login_pressed' not in st.session_state:
         st.session_state.button_login_pressed = False
+    else: 
+        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
+        data = response.json()
+        st.session_state.user_info = data['user']
+        
 
     # Function to handle logout press
     def handle_button_logout_press():
