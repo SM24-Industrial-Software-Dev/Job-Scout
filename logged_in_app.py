@@ -97,7 +97,26 @@ with st.sidebar:
             handle_button_logout_press()
 
 if st.button("search"):
-        if job_title or location or company or frequency:
+    if job_title or location or company:
+        if frequency == 'One-Time Instant Results':
+            job_search_data = {
+            'title': job_title,
+            'company': company,
+            'location': location
+            }
+            try:
+                fastapi_response = requests.get(
+                    'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
+                    json=job_search_data
+                )
+
+                if fastapi_response.status_code == 200:
+                    st.success('Search request sent! Check your results shortly.')
+                else:
+                    st.error(f"Failed to add job search. Error: {fastapi_response.text}")
+            except Exception as e:
+                st.error(f"An error occurred: {e}")    
+        elif frequency:
             user_id = st.session_state.user_info['sub']
             interval = convert_frequency_to_interval(frequency)
             job_search_data = {
@@ -141,6 +160,7 @@ if st.button("search"):
                     })
                 )
             )
-
         else:
             st.error("Please fill out a field before searching.")
+    else:
+        st.error("Please fill out a field before searching.")
