@@ -71,21 +71,21 @@ def handle_button_logout_press():
         st.session_state.button_login_pressed = False
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
     
-    def convert_frequency_to_interval(frequency):
-        if frequency == 'Every Minute (For Testing)':
-            return "PT1M"
-        elif frequency == 'Daily':
-            return "P1D"
-        elif frequency == 'Weekly':
-            return "P7D"
-        elif frequency == 'Bimonthly':
-            return "P14D"
-        elif frequency == 'Monthly':
-            return "P30D"
-        elif frequency == 'Biweekly':
-            return "P3.5D"
-        else:
-            return "P7D"
+def convert_frequency_to_interval(frequency) -> str:
+    if frequency == 'Every Minute (For Testing)':
+        return "PT1M"
+    elif frequency == 'Daily':
+        return "P1D"
+    elif frequency == 'Weekly':
+        return "P7D"
+    elif frequency == 'Bimonthly':
+        return "P14D"
+    elif frequency == 'Monthly':
+        return "P30D"
+    elif frequency == 'Biweekly':
+        return "P3.5D"
+    else:
+        return "P7D"
 
     # Sidebar for floating menu
 with st.sidebar:
