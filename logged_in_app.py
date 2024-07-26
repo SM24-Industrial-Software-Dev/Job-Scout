@@ -128,7 +128,7 @@ if st.button("search"):
                         location = job.get('location', 'N/A')
                         link = job.get('link', '#')
                         if title == 'No matching jobs found.':
-                            st.write("No matching jobs found.")
+                            st.write("Sorry, no matching jobs found. Please try another search.")
                         else:
                             st.write(f"**Title:** {title}")
                             st.write(f"**Company:** {company}")
