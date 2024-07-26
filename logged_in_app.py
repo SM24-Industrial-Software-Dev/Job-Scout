@@ -1,3 +1,4 @@
+# logged_in_app.py
 import streamlit as st
 import requests
 import json
@@ -18,8 +19,9 @@ sqs = boto3.client('sqs', region_name='us-east-2')
 
 queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
-# Verify that the queue_url is set correctly
-#st.write(f"Queue URL: {queue_url}")
+# Initialize session state for user_info if not present
+if 'user_info' not in st.session_state:
+    st.session_state['user_info'] = None
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
@@ -27,7 +29,6 @@ if 'next_task_id_counter' not in st.session_state:
 def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
-
 
 st.title("JobScout")
 st.text(
@@ -39,7 +40,14 @@ st.text(
 # Check login status
 if not st.session_state.user_info:
     st.write("User info not found in session state, checking login status...")
-    
+    response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
+    if response.status_code == 200:
+        data = response.json()
+        if data['logged_in']:
+            st.session_state.user_info = data['user']
+            st.write("User info found and updated in session state:", st.session_state.user_info)
+        else:
+            st.write("User not logged in.")
 else:
     st.write("User info found in session state:", st.session_state.user_info)
     job_title = st.text_input("Job Title:")
