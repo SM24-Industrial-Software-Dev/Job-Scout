@@ -15,36 +15,32 @@ def get_unix_timestamp_by_min(dt: datetime) -> int:
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-
 queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
-# Verify that the queue_url is set correctly
-#st.write(f"Queue URL: {queue_url}")
+# Initialize session state
+if 'user_info' not in st.session_state:
+    st.session_state.user_info = None
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
-
-if 'user_info' not in st.session_state:
-    st.session_state.user_info = None
 
 def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
 
+# Check login status function
 def check_login_status():
     try:
         response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-        st.write("Response from login status check:", response.text)
-        if response.status_code == 200:
-            data = response.json()
-            st.write("Parsed response data:", data)
-            if data.get('logged_in'):
-                st.session_state.user_info = data['user']
-                return True
-        return False
-    except Exception as e:
-        st.error(f"An error occurred while checking login status: {e}")
-        return False
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+        st.write("Login status response:", data)  # Debugging: Output the response data
+        if data.get('logged_in'):
+            st.session_state.user_info = data['user']
+        else:
+            st.session_state.user_info = None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to check login status: {e}")
 
 st.title("JobScout")
 st.text(
@@ -53,11 +49,11 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
-# Check login status
-if not st.session_state.user_info:
-    st.write("User info not found in session state, checking login status...")
-    if not check_login_status():
-        st.error("You must be logged in to use this application.")
+# Fetch login status
+check_login_status()
+
+if st.session_state.user_info is None:
+    st.write("User not logged in.")
 else:
     st.write("User info found in session state:", st.session_state.user_info)
     job_title = st.text_input("Job Title:")
@@ -88,6 +84,7 @@ else:
     # Function to handle logout press
     def handle_button_logout_press():
         st.session_state.button_login_pressed = False
+        st.session_state.user_info = None
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
     
     def convert_frequency_to_interval(frequency) -> str:

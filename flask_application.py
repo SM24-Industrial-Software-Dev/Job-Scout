@@ -8,7 +8,7 @@ app.secret_key = "CS_class_of_2027"  # Ensure this is a secure, random key in pr
 app.config['SESSION_COOKIE_NAME'] = 'flask-session-cookie'
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SECURE'] = False  # Set to True in production with HTTPS
-app.config['SESSION_COOKIE_SAMESITE'] = "Lax"  # or 'None' if cross-site
+app.config['SESSION_COOKIE_SAMESITE'] = "None1"  # or 'None' if cross-site
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
