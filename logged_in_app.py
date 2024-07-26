@@ -59,6 +59,10 @@ else:
 ]
     location = st.selectbox(label="Location:", options=states)
     company = st.text_input("Company:")
+    
+    frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+    location = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+    
 
 login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
 logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
@@ -93,8 +97,9 @@ with st.sidebar:
             handle_button_logout_press()
 
 if st.button("search"):
-        if job_title or location or company:
+        if job_title or location or company or frequency:
             user_id = st.session_state.user_info['sub']
+            interval = convert_frequency_to_interval(frequency)
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': interval,
