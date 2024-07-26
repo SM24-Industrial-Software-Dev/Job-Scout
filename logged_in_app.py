@@ -100,9 +100,9 @@ if st.button("search"):
     if job_title or location or company:
         if frequency == 'One-Time Instant Results':
             job_search_data = {
-            'title': job_title,
-            'company': company,
-            'location': location
+            'title': str(job_title),
+            'company': str(company),
+            'location': str(location)
             }
             try:
                 fastapi_response = requests.get(
