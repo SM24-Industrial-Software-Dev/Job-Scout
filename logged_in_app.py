@@ -36,7 +36,7 @@ st.text(
 )
 
 # Check if the user is logged in
-query_params = st.query_params()
+query_params = st.experimental_get_query_params()
 user_id = query_params.get("user_id", [None])[0]
 
 if user_id:
