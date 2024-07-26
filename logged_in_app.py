@@ -60,7 +60,7 @@ else:
     location = st.selectbox(label="Location:", options=states)
     company = st.text_input("Company:")
     
-    frequency = ['', 'O', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+    frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
     frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
     
 
@@ -98,7 +98,7 @@ with st.sidebar:
 
 if st.button("search"):
     if job_title or location or company:
-        if frequencies == 'O':
+        if frequencies == 'One-Time Instant Results':
             print("once")
             job_search_data = {
             'title': job_title,
