@@ -100,9 +100,9 @@ if st.button("search"):
     if job_title or location or company:
         if frequency == 'One-Time Instant Results':
             job_search_data = {
-            'title': str(job_title),
-            'company': str(company),
-            'location': str(location)
+            'title': job_title,
+            'company': company,
+            'location': location
             }
             try:
                 fastapi_response = requests.get(
@@ -118,12 +118,12 @@ if st.button("search"):
                 st.error(f"An error occurred: {e}")    
         elif frequency:
             #user_id = st.session_state.user_info['sub']
-            interval = convert_frequency_to_interval(frequency)
+            interval = str(convert_frequency_to_interval(frequency))
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': interval,
                 'retries': 3,
-                'created': Field(default_factory=get_current_time),
+                'created': str(Field(default_factory=get_current_time)),
                 'type': "notif",
                 'user_id': 1,
                 'job_id': None,
