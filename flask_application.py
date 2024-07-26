@@ -120,7 +120,7 @@ def authorize():
         else:
             # Store new user information in DynamoDB
             user_item = {
-                'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
+                'id': int(user_info['sub']),  # Assuming 'sub' is the unique identifier
                 'email': user_info['email'],
                 'name': user_info.get('name', ''),
                 'preferred_job_type': None,
