@@ -118,7 +118,7 @@ if st.button("search"):
             except Exception as e:
                 st.error(f"An error occurred: {e}")    
         elif frequencies:
-            #user_id = st.session_state.user_info['sub']
+            user_id = st.session_state.user_info['sub']
             print("saved")
             interval = str(convert_frequency_to_interval(frequencies))
             job_search_data = {
