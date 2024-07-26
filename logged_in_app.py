@@ -1,4 +1,3 @@
-# logged_in_app.py
 import streamlit as st
 import requests
 import json
@@ -16,12 +15,11 @@ def get_unix_timestamp_by_min(dt: datetime) -> int:
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-
 queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
-# Initialize session state for user_info if not present
+# Initialize session state
 if 'user_info' not in st.session_state:
-    st.session_state['user_info'] = None
+    st.session_state.user_info = None
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
@@ -30,6 +28,15 @@ def next_task_id():
     st.session_state.next_task_id_counter += 1
     return st.session_state.next_task_id_counter
 
+# Check login status function
+def check_login_status():
+    response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
+    data = response.json()
+    if data.get('logged_in'):
+        st.session_state.user_info = data['user']
+    else:
+        st.session_state.user_info = None
+
 st.title("JobScout")
 st.text(
     "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
@@ -37,17 +44,11 @@ st.text(
     "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
     "\nmanual queries and real-time results.")
 
-# Check login status
-if not st.session_state.user_info:
-    st.write("User info not found in session state, checking login status...")
-    response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-    if response.status_code == 200:
-        data = response.json()
-        if data['logged_in']:
-            st.session_state.user_info = data['user']
-            st.write("User info found and updated in session state:", st.session_state.user_info)
-        else:
-            st.write("User not logged in.")
+# Fetch login status
+check_login_status()
+
+if st.session_state.user_info is None:
+    st.write("User not logged in.")
 else:
     st.write("User info found in session state:", st.session_state.user_info)
     job_title = st.text_input("Job Title:")
@@ -69,15 +70,11 @@ else:
 
     if 'button_login_pressed' not in st.session_state:
         st.session_state.button_login_pressed = False
-    else: 
-        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-        data = response.json()
-        st.session_state.user_info = data['user']
-        
 
     # Function to handle logout press
     def handle_button_logout_press():
         st.session_state.button_login_pressed = False
+        st.session_state.user_info = None
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
 
     # Sidebar for floating menu
