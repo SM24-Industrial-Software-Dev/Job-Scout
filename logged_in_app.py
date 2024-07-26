@@ -97,7 +97,6 @@ if st.session_state.user_info:
 if st.button("search"):
     if job_title or location or company:
         if frequencies == 'One-Time Instant Results':
-            print("once")
             job_search_data = {
             'title': job_title,
             'company': company,
@@ -122,7 +121,6 @@ if st.button("search"):
                 st.error(f"An error occurred: {e}")    
         elif frequencies:
             #user_id = st.session_state.user_info['sub']
-            print("saved")
             interval = str(convert_frequency_to_interval(frequencies))
             job_search_data = {
                 'task_id': next_task_id(),
