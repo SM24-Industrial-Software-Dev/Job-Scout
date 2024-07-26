@@ -1,51 +1,39 @@
 import streamlit as st
-import boto3
-import json
 import requests
 
-# Initialize the DynamoDB client
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
-table_name = 'Jobs'
-
-try:
-    table = dynamodb.Table(table_name)
-    # Check if table exists
-    table.load()
-except ClientError as e:
-    st.error(f"Could not connect to DynamoDB table: {e.response['Error']['Message']}")
-
-# Initialize the SQS client
-sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://us-east-2.queue.amazonaws.com/767397805190/QueryJobsDB'  # Replace with your actual SQS Queue URL - replaced
+st.set_page_config(page_title="JobScout", layout="wide")
 
 st.title("JobScout")
 st.text(
-    "JobScout is a web application that simplifies job searching by querying multiple job \nlisting sites and saving "
-    "user-defined searches. Utilizing a distributed work \nscheduler, it regularly updates the job listings database "
-    "and notifies users of new \nopportunities. The application also features a user-friendly web interface for "
-    "\nmanual queries and real-time results.")
+    "JobScout is a web application that simplifies job searching by querying multiple job listing sites and saving "
+    "user-defined searches. Utilizing a distributed work scheduler, it regularly updates the job listings database "
+    "and notifies users of new opportunities. The application also features a user-friendly web interface for "
+    "manual queries and real-time results."
+)
 
-job_title = st.text_input("Job Title:")  # can add default value
-states = [
-    '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming'
-]
-location = st.selectbox(label="Location:", options=states)  # make empty string the default for entire U.S.
-company = st.text_input("Company:")  # can add default value
+job_title = st.text_input("Job Title:")
+states = ['', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+          'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+          'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+          'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+          'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+          'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+          'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+          'Wisconsin', 'Wyoming']
+location = st.selectbox(label="Location:", options=states)
+company = st.text_input("Company:")
 
-login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
-is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in"
+frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+
+login_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/login"
+logout_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/logout"
+is_logged_in_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/is_logged_in"
+
+
 
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False
-
 
 # Function to check login status
 def check_login_status():
@@ -54,19 +42,16 @@ def check_login_status():
         data = response.json()
         st.session_state.button_login_pressed = data['logged_in']
 
-
 # Function to handle login press
 def handle_button_login_press():
     st.session_state.button_login_pressed = True
     st.markdown(f'<meta http-equiv="refresh" content="0; url={login_url}">', unsafe_allow_html=True)
     check_login_status()
 
-
 # Function to handle logout press
 def handle_button_logout_press():
     st.session_state.button_login_pressed = False
     st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
-
 
 # Sidebar for floating menu
 with st.sidebar:
@@ -79,71 +64,72 @@ with st.sidebar:
         if st.button("Logout"):
             handle_button_logout_press()
 
+def convert_frequency_to_interval(frequency) -> str:
+        if frequency == 'Every Minute (For Testing)':
+            return "PT1M"
+        elif frequency == 'Daily':
+            return "P1D"
+        elif frequency == 'Weekly':
+            return "P7D"
+        elif frequency == 'Bimonthly':
+            return "P14D"
+        elif frequency == 'Monthly':
+            return "P30D"
+        elif frequency == 'Biweekly':
+            return "P3.5D"
+        else:
+            return "P7D"
 
-# Function to retrieve all jobs from DynamoDB
-def get_all_jobs():
-    try:
-        response = table.scan()
-        return response.get('Items', [])
-    except ClientError as e:
-        st.error(f"An error occurred: {e.response['Error']['Message']}")
-        st.error(f"Error code: {e.response['Error']['Code']}")
-        st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
-        return []
-
-
-# Display the jobs in Streamlit
-def display_jobs(jobs):
-    for job in jobs:
-        st.subheader(job.get('title', 'No Title'))
-        st.write(f"Location: {job.get('location', 'Unknown')}")
-        st.write(f"Company: {job.get('company', 'Unknown')}")
-        st.write(f"Description: {job.get('description', 'No Description')}")
-        st.write("---")
-
-
-# Function to retrieve messages from SQS
-# def retrieve_messages():
-#     response = sqs.receive_message(
-#         QueueUrl=queue_url,
-#         MaxNumberOfMessages=10,
-#         WaitTimeSeconds=5
-#     )
-#     return response.get('Messages', [])
-
-# Display the jobs in Streamlit
-def display_jobs(jobs):
-    for job in jobs:
-        st.subheader(job.get('title', 'No Title'))
-        st.write(f"Location: {job.get('location', 'Unknown')}")
-        st.write(f"Company: {job.get('company', 'Unknown')}")
-        st.write(f"Description: {job.get('description', 'No Description')}")
-        st.write("---")
-
-
-if st.button("search"):
+if st.button("Search"):
     if job_title or location or company:
-        try:
-            # Send message to SQS
-            response = sqs.send_message(
-                QueueUrl=queue_url,
-                MessageBody=(
-                    json.dumps({
-                        'job_title': job_title,
+        if frequencies == 'One-Time Instant Results':
+            job_search_data = {
+            'title': job_title,
+            'company': company,
+            'location': location
+            }
+            try:
+                # Build the URL with query parameters
+                response = requests.get(
+                    'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
+                    params={
+                        'role': job_title,  # Assuming job_title is used as role
                         'location': location,
                         'company': company
-                    })
+                    }
                 )
-            )
-            st.success('Searching')
-        except ClientError as e:
-            st.error(f"Could not send message to SQS queue: {e.response['Error']['Message']}")
-            st.error(f"Error code: {e.response['Error']['Code']}")
-            st.error(f"Request ID: {e.response['ResponseMetadata']['RequestId']}")
-        st.warning('Warning: You must be logged in to save searches.')
+
+                if response.status_code == 200:
+                    # Parse the JSON response
+                    results = response.json().get('results', [])
+                    if not results:
+                        st.write("No results found.")
+                    
+                    # Display the results in a formatted way
+                    st.success('Search request sent! Check your results below:')
+                    
+                    for job in results:
+                        title = job.get('title', 'N/A')
+                        company = job.get('company', 'N/A')
+                        location = job.get('location', 'N/A')
+                        link = job.get('link', '#')
+                        if title == 'No matching jobs found.':
+                            st.write("Sorry, no matching jobs found. Please try another search.")
+                        else:
+                            st.write(f"**Title:** {title}")
+                            st.write(f"**Company:** {company}")
+                            st.write(f"**Location:** {location}")
+                            st.markdown(f"[Link to Apply]({link})")  # Clickable link
+                            st.write("---")  # Separator between jobs
+
+                else:
+                    st.error(f"Failed to add job search. Error: {response.text}")
+            except Exception as e:
+                st.error(f"An error occurred: {e}")    
+        elif frequencies:
+            st.error("Please sign in to save a search. If you'd like to conduct an instant search, please select One-Time Instant Results")
+        else:
+            st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
 
-# Fetch and display all jobs from the Jobs table
-jobs = get_all_jobs()
-display_jobs(jobs)
