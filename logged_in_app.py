@@ -141,7 +141,7 @@ if st.button("search"):
             except Exception as e:
                 st.error(f"An error occurred: {e}")    
         elif frequencies:
-            #user_id = st.session_state.user_info['sub']
+            user_id = st.session_state.user_info['sub']
             interval = str(convert_frequency_to_interval(frequencies))
             job_search_data = {
                 'task_id': next_task_id(),
@@ -149,7 +149,7 @@ if st.button("search"):
                 'retries': 3,
                 'created': int(get_current_time()),
                 'type': "notif",
-                'user_id': 1,
+                'user_id': user_id,
                 'job_id': None,
                 'title': job_title,
                 'description': None,
