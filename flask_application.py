@@ -1,7 +1,5 @@
 import os
-import subprocess
-import psutil
-from flask import Flask, redirect, url_for, session, jsonify
+from flask import Flask, redirect, url_for, session, jsonify, request
 from authlib.integrations.flask_client import OAuth
 import boto3
 from botocore.exceptions import ClientError
@@ -13,21 +11,63 @@ app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.go
 app.config['GOOGLE_SECRET'] = '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'
 app.config['GOOGLE_REDIRECT_URI'] = 'http://localhost:5000/callback'
 
-# Initialize DynamoDB client and tables
+# Initialize DynamoDB client and resource
 AWS_REGION = os.getenv("AWS_REGION")
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 
+dynamodb_client = boto3.client(
+    'dynamodb',
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
+dynamodb_resource = boto3.resource(
+    'dynamodb',
+    region_name=AWS_REGION,
+    aws_access_key_id=AWS_ACCESS_KEY_ID,
+    aws_secret_access_key=AWS_SECRET_ACCESS_KEY
+)
+
+# Function to create DynamoDB table
+def create_users_table():
+    try:
+        table = dynamodb_client.create_table(
+            TableName='Users',
+            KeySchema=[
+                {
+                    'AttributeName': 'id',
+                    'KeyType': 'HASH'  # Partition key
+                }
+            ],
+            AttributeDefinitions=[
+                {
+                    'AttributeName': 'id',
+                    'AttributeType': 'S'
+                }
+            ],
+            ProvisionedThroughput={
+                'ReadCapacityUnits': 5,
+                'WriteCapacityUnits': 5
+            }
+        )
+        print("Table created successfully!")
+        return table
+    except ClientError as e:
+        print(f"Error creating table: {e}")
+        return None
+
+# Check if table exists and create if it doesn't
 try:
-    dynamodb = boto3.resource(
-        'dynamodb',
-        region_name=AWS_REGION,
-        aws_access_key_id=AWS_ACCESS_KEY_ID,
-        aws_secret_access_key=AWS_SECRET_ACCESS_KEY
-    )
-    users_table = dynamodb.Table('Users')
+    existing_tables = dynamodb_client.list_tables()['TableNames']
+    if 'Users' not in existing_tables:
+        create_users_table()
+    else:
+        print("Table 'Users' already exists.")
+    users_table = dynamodb_resource.Table('Users')
 except ClientError as e:
-    print(f"Error initializing DynamoDB: {e}")
+    print(f"Error listing tables or initializing table resource: {e}")
 
 oauth = OAuth(app)
 google = oauth.register(
@@ -66,30 +106,37 @@ def authorize():
     resp = google.get('https://openidconnect.googleapis.com/v1/userinfo')
     resp.raise_for_status()
     user_info = resp.json()
-    session['user'] = user_info
 
-    # Store user information in DynamoDB
+    print(f"User info retrieved: {user_info}")  # Print user info to verify
+
+    # Check if user already exists in DynamoDB
     try:
-        user_item = {
-            'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
-            'email': user_info['email'],
-            'name': user_info.get('name', ''),
-            'preferred_job_type': None,
-            'preferred_location': None
-        }
-        users_table.put_item(Item=user_item)
-    except ClientError as e:
-        if e.response['Error']['Code'] == 'ConditionalCheckFailedException':
-            # Handle case where user already exists (optional)
-            pass
+        response = users_table.get_item(Key={'id': user_info['sub']})
+        if 'Item' in response:
+            user_item = response['Item']
+            print("User found in DynamoDB:", user_item)
+            # Update session with existing user information
+            session['user'] = user_item
         else:
-            print(f"Error storing user in DynamoDB: {e}")
+            # Store new user information in DynamoDB
+            user_item = {
+                'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
+                'email': user_info['email'],
+                'name': user_info.get('name', ''),
+                'preferred_job_type': None,
+                'preferred_location': None
+            }
+            users_table.put_item(Item=user_item)
+            session['user'] = user_info  # Update session with new user information
+    except ClientError as e:
+        print(f"Error retrieving or storing user in DynamoDB: {e}")
 
-    return redirect('http://localhost:8501')  # Redirect to Streamlit app
+    return redirect(f'http://localhost:8501?user_id={user_info["sub"]}')  # Redirect to Streamlit app with user ID
 
 @app.route('/is_logged_in')
 def is_logged_in():
     user = session.get('user')
+    print(f"User session data: {user}")  # Print user session data to verify
     if user:
         return jsonify(logged_in=True, user=user)
     else:
