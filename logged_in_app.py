@@ -74,6 +74,11 @@ else:
     location = st.selectbox(label="Location:", options=states)
     company = st.text_input("Company:")
 
+    frequencies = [
+        '', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Weekly', 'Biweekly', 'Monthly', 'Bimonthly' ]
+    job_title = st.selectbox(label="How often would you like to be notified?:", options = frequencies)
+    
+
     login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
     logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 
@@ -84,6 +89,22 @@ else:
     def handle_button_logout_press():
         st.session_state.button_login_pressed = False
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
+    
+    def convert_frequency_to_interval(frequency) -> str:
+        if frequency == 'Every Minute (For Testing)':
+            return "PT1M"
+        elif frequency == 'Daily':
+            return "P1D"
+        elif frequency == 'Weekly':
+            return "P7D"
+        elif frequency == 'Bimonthly':
+            return "P14D"
+        elif frequency == 'Monthly':
+            return "P30D"
+        elif frequency == 'Biweekly':
+            return "P3.5D"
+        else:
+            return "P7D"
 
     # Sidebar for floating menu
     with st.sidebar:
@@ -91,11 +112,34 @@ else:
             handle_button_logout_press()
 
     if st.button("search"):
-        if job_title or location or company:
+        if frequencies == 'One-Time Instant Results':
+            if job_title or location or company:
+                job_search_data = {
+                    'title': job_title,
+                    'company': company,
+                    'location': location
+                }
+                try:
+                    fastapi_response = requests.get(
+                        'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
+                        json=job_search_data
+                    )
+
+                    if fastapi_response.status_code == 200:
+                        st.success('Search request sent! Check your results shortly.')
+                    else:
+                        st.error(f"Failed to add job search. Error: {fastapi_response.text}")
+
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
+            else:
+                st.error("Please fill out a field before searching.")
+        elif frequencies and (job_title or location or company):
             user_id = st.session_state.user_info['sub']
+            interval = convert_frequency_to_interval(frequencies)
             job_search_data = {
                 'task_id': next_task_id(),
-                'interval': "PT1M",
+                'interval': interval,
                 'retries': 3,
                 'created': Field(default_factory=get_current_time),
                 'type': "notif",
