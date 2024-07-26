@@ -127,12 +127,14 @@ if st.button("search"):
                         company = job.get('company', 'N/A')
                         location = job.get('location', 'N/A')
                         link = job.get('link', '#')
-
-                        st.write(f"**Title:** {title}")
-                        st.write(f"**Company:** {company}")
-                        st.write(f"**Location:** {location}")
-                        st.markdown(f"[Link to Apply]({link})")  # Clickable link
-                        st.write("---")  # Separator between jobs
+                        if title == 'No matching jobs found.':
+                            st.write("No matching jobs found.")
+                        else:
+                            st.write(f"**Title:** {title}")
+                            st.write(f"**Company:** {company}")
+                            st.write(f"**Location:** {location}")
+                            st.markdown(f"[Link to Apply]({link})")  # Clickable link
+                            st.write("---")  # Separator between jobs
 
                 else:
                     st.error(f"Failed to add job search. Error: {response.text}")
