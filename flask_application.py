@@ -98,7 +98,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    return redirect(url_for('index'))
+    return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8501')
 
 @app.route('/callback')
 def authorize():
