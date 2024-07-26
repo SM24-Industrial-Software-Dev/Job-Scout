@@ -90,7 +90,7 @@ else:
         st.session_state.button_login_pressed = False
         st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
     
-    def convert_frequency_to_interval(frequency) -> str:
+    def convert_frequency_to_interval(frequency):
         if frequency == 'Every Minute (For Testing)':
             return "PT1M"
         elif frequency == 'Daily':
