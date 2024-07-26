@@ -61,7 +61,7 @@ if st.session_state.user_info:
     company = st.text_input("Company:")
     
     frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
-    frequency = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+    frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
     login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
     logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
@@ -94,7 +94,6 @@ if st.session_state.user_info:
         if st.button("Logout"):
             handle_button_logout_press()
 
-<<<<<<< HEAD
 if st.button("search"):
     if job_title or location or company:
         if frequencies == 'One-Time Instant Results':
@@ -166,73 +165,5 @@ if st.button("search"):
                     })
                 )
             )
-=======
-    if st.button("search"):
-        if job_title or location or company:
-            if frequency == 'One-Time Instant Results':
-                job_search_data = {
-                    'title': job_title,
-                    'company': company,
-                    'location': location
-                }
-                try:
-                    fastapi_response = requests.get(
-                        'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
-                        json=job_search_data
-                    )
-
-                    if fastapi_response.status_code == 200:
-                        st.success('Search request sent! Check your results shortly.')
-                    else:
-                        st.error(f"Failed to add job search. Error: {fastapi_response.text}")
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")    
-            elif frequency:
-                user_id = st.session_state.user_info['sub']
-                interval = convert_frequency_to_interval(frequency)
-                job_search_data = {
-                    'task_id': next_task_id(),
-                    'interval': interval,
-                    'retries': 3,
-                    'created': get_current_time(),
-                    'type': "notif",
-                    'user_id': user_id,
-                    'job_id': None,
-                    'title': job_title,
-                    'description': None,
-                    'company': company,
-                    'location': location
-                }
-
-                job_search_data['job_id'] = job_search_data['job_id'] if job_search_data['job_id'] is not None else 0
-                job_search_data['description'] = job_search_data['description'] if job_search_data['description'] is not None else ""
-
-                try:
-                    fastapi_response = requests.post(
-                        'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/add_search/',
-                        json=job_search_data
-                    )
-
-                    if fastapi_response.status_code == 200:
-                        st.success('Search request sent! Check your results shortly.')
-                    else:
-                        st.error(f"Failed to add job search. Error: {fastapi_response.text}")
-
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-
-                response = sqs.send_message(
-                    QueueUrl=queue_url,
-                    MessageBody=(
-                        json.dumps({
-                            'job_title': job_title,
-                            'location': location,
-                            'company': company
-                        })
-                    )
-                )
-            else:
-                st.error("Please fill out a field before searching.")
->>>>>>> 499355e2cde2111ccafbba1c48201b31946af841
         else:
             st.error("Please fill out a field before searching.")
