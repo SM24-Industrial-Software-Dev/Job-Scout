@@ -34,7 +34,6 @@ class Scheduler:
             elif isinstance(t, Notifs):
                 task_item.update({
                     'user_id': t.user_id,
-                    'email': t.email,
                     'job_id': t.job_id,
                     'title': t.title,
                     'company': t.company,
