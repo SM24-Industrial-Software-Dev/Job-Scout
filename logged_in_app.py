@@ -42,7 +42,7 @@ st.text(
 
 
 
-if st.session_state.user_info is not None:
+if st.session_state.user_info is None:
     st.write("User not logged in.")
 else:
     st.write("User info found in session state:", st.session_state.user_info)
