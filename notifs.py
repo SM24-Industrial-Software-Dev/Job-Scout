@@ -148,7 +148,7 @@ def get_user_email(user_id: str) -> str:
             return response['Item'].get('email', 'Email not found')
         else:
             return 'User not found'
-    except ClientError as e:
+    except Exception as e:
         print(f"Error querying table: {str(e)}")
         return 'Error querying table'
     
