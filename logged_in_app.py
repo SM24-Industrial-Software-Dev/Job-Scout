@@ -123,7 +123,7 @@ if st.button("search"):
                 'task_id': next_task_id(),
                 'interval': interval,
                 'retries': 3,
-                'created': int(Field(default_factory=get_current_time)),
+                'created': int(get_current_time),
                 'type': "notif",
                 'user_id': 1,
                 'job_id': None,
