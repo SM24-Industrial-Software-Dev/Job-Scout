@@ -118,7 +118,22 @@ if st.button("search"):
                     results = response.json()
                     # Display the results in Streamlit
                     st.success('Search request sent! Check your results below:')
-                    st.write(results)
+                    # Assuming results is a string with newline-separated job entries
+                    job_entries = results['results'].split('\n')
+                    for job in job_entries:
+                        if job.strip():  # Check if job is not empty
+                            parts = job.split(', ')
+                            title = parts[0].replace('Title: ', '')
+                            company = parts[1].replace('Company: ', '')
+                            location = parts[2].replace('Location: ', '')
+                            link = parts[3].replace('Link: ', '')
+
+                            st.write(f"**Title:** {title}")
+                            st.write(f"**Company:** {company}")
+                            st.write(f"**Location:** {location}")
+                            st.markdown(f"[Job Link]({link})")  # Clickable link
+                            st.write("---")  # Separator between jobs
+
                 else:
                     st.error(f"Failed to add job search. Error: {response.text}")
             except Exception as e:
