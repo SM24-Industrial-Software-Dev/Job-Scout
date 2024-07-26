@@ -106,15 +106,20 @@ if st.button("search"):
             'location': location
             }
             try:
-                fastapi_response = requests.get(
+                # Build the URL with query parameters
+                response = requests.get(
                     'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
-                    json=job_search_data
+                    params={
+                        'role': job_title,  # Assuming job_title is used as role
+                        'location': location,
+                        'company': company
+                    }
                 )
 
-                if fastapi_response.status_code == 200:
+                if response.status_code == 200:
                     st.success('Search request sent! Check your results shortly.')
                 else:
-                    st.error(f"Failed to add job search. Error: {fastapi_response.text}")
+                    st.error(f"Failed to add job search. Error: {response.text}")
             except Exception as e:
                 st.error(f"An error occurred: {e}")    
         elif frequencies:
