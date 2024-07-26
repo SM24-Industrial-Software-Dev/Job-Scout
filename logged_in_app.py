@@ -123,7 +123,7 @@ if st.button("search"):
                 'task_id': next_task_id(),
                 'interval': interval,
                 'retries': 3,
-                'created': str(Field(default_factory=get_current_time)),
+                'created': Field(default_factory=get_current_time),
                 'type': "notif",
                 'user_id': 1,
                 'job_id': None,
@@ -161,6 +161,6 @@ if st.button("search"):
                 )
             )
         else:
-            st.error("Please fill out a field before searching.")
+            st.error("Please choose a frequency")
     else:
         st.error("Please fill out a field before searching.")
