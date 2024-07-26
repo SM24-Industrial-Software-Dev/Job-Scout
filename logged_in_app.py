@@ -117,7 +117,7 @@ if st.button("search"):
             except Exception as e:
                 st.error(f"An error occurred: {e}")    
         elif frequency:
-            user_id = st.session_state.user_info['sub']
+            #user_id = st.session_state.user_info['sub']
             interval = convert_frequency_to_interval(frequency)
             job_search_data = {
                 'task_id': next_task_id(),
