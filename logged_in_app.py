@@ -30,12 +30,17 @@ def next_task_id():
 
 # Check login status function
 def check_login_status():
-    response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
-    data = response.json()
-    if data.get('logged_in'):
-        st.session_state.user_info = data['user']
-    else:
-        st.session_state.user_info = None
+    try:
+        response = requests.get('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in')
+        response.raise_for_status()  # Raise an exception for HTTP errors
+        data = response.json()
+        st.write("Login status response:", data)  # Debugging: Output the response data
+        if data.get('logged_in'):
+            st.session_state.user_info = data['user']
+        else:
+            st.session_state.user_info = None
+    except requests.exceptions.RequestException as e:
+        st.error(f"Failed to check login status: {e}")
 
 st.title("JobScout")
 st.text(
