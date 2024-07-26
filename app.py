@@ -26,9 +26,9 @@ company = st.text_input("Company:")
 frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
 frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-login_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/login"
-logout_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/logout"
-is_logged_in_url = "http://replace it with ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/is_logged_in"
+login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/login"
+logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/logout"
+is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:5000/is_logged_in"
 
 
 
