@@ -106,7 +106,7 @@ class Tables:
                 AttributeDefinitions=[
                     {
                         'AttributeName': 'id',
-                        'AttributeType': 'N'  # String
+                        'AttributeType': 'S'  # String
                     }
                 ],
                 ProvisionedThroughput={

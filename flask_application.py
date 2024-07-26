@@ -44,7 +44,7 @@ def create_users_table():
             AttributeDefinitions=[
                 {
                     'AttributeName': 'id',
-                    'AttributeType': 'N'
+                    'AttributeType': 'S'
                 }
             ],
             ProvisionedThroughput={
@@ -122,11 +122,9 @@ def authorize():
             print("Storing new user in DynamoDB")
             print(user_info['sub'])
             user_item = {
-                'id': int(user_info['sub']),  # Assuming 'sub' is the unique identifier
+                'id': user_info['sub'],  # Assuming 'sub' is the unique identifier
                 'email': user_info['email'],
                 'name': user_info.get('name', ''),
-                'preferred_job_type': None,
-                'preferred_location': None
             }
             users_table.put_item(Item=user_item)
             session['user'] = user_info  # Update session with new user information
