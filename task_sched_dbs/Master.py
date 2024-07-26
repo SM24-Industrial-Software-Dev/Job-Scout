@@ -147,7 +147,6 @@ class Executer:
         )
         task = response['Item']
         user_id = task.get('user_id')
-        email = task.get('email')
         
         # Optional fields
         job_id = task.get('job_id')
@@ -157,7 +156,6 @@ class Executer:
         
         notif_details = {
             'user_id': user_id,
-            'email': email,
             'job_id': job_id,
             'title': title,
             'company': company,

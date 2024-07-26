@@ -23,7 +23,6 @@ class Refresh(Task):
 
 class Notifs(Task):
     user_id: int
-    email: str
     job_id: int = None
     title: str = None
     company: str = None

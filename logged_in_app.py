@@ -61,7 +61,7 @@ else:
     company = st.text_input("Company:")
     
     frequency = ['', 'O', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
-    location = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+    frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
     
 
 login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
@@ -98,7 +98,7 @@ with st.sidebar:
 
 if st.button("search"):
     if job_title or location or company:
-        if frequency == 'O':
+        if frequencies == 'O':
             print("once")
             job_search_data = {
             'title': job_title,
@@ -117,10 +117,10 @@ if st.button("search"):
                     st.error(f"Failed to add job search. Error: {fastapi_response.text}")
             except Exception as e:
                 st.error(f"An error occurred: {e}")    
-        elif frequency:
+        elif frequencies:
             #user_id = st.session_state.user_info['sub']
             print("saved")
-            interval = str(convert_frequency_to_interval(frequency))
+            interval = str(convert_frequency_to_interval(frequencies))
             job_search_data = {
                 'task_id': next_task_id(),
                 'interval': interval,
