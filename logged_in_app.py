@@ -115,24 +115,24 @@ if st.button("search"):
 
                 if response.status_code == 200:
                     # Parse the JSON response
-                    results = response.json()
-                    # Display the results in Streamlit
+                    results = response.json().get('results', [])
+                    if not results:
+                        st.write("No results found.")
+                    
+                    # Display the results in a formatted way
                     st.success('Search request sent! Check your results below:')
-                    # Assuming results is a string with newline-separated job entries
-                    job_entries = results['results'].split('\n')
-                    for job in job_entries:
-                        if job.strip():  # Check if job is not empty
-                            parts = job.split(', ')
-                            title = parts[0].replace('Title: ', '')
-                            company = parts[1].replace('Company: ', '')
-                            location = parts[2].replace('Location: ', '')
-                            link = parts[3].replace('Link: ', '')
+                    
+                    for job in results:
+                        title = job.get('title', 'N/A')
+                        company = job.get('company', 'N/A')
+                        location = job.get('location', 'N/A')
+                        link = job.get('link', '#')
 
-                            st.write(f"**Title:** {title}")
-                            st.write(f"**Company:** {company}")
-                            st.write(f"**Location:** {location}")
-                            st.markdown(f"[Job Link]({link})")  # Clickable link
-                            st.write("---")  # Separator between jobs
+                        st.write(f"**Title:** {title}")
+                        st.write(f"**Company:** {company}")
+                        st.write(f"**Location:** {location}")
+                        st.markdown(f"[Job Link]({link})")  # Clickable link
+                        st.write("---")  # Separator between jobs
 
                 else:
                     st.error(f"Failed to add job search. Error: {response.text}")
