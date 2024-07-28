@@ -135,6 +135,7 @@ def perform_search(job_title: str, location: str, company: str):
 def get_user_email(user_id: str) -> str:
     # Reference the Users table
     table = dynamodb.Table('Users')
+    print("LOGGING, USER ID: " + user_id)
     
     try:
         # Perform the query
