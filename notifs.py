@@ -88,10 +88,12 @@ def process_notifs_message():
         if 'Messages' in response:
             for message in response['Messages']:
                 body = json.loads(message['Body'])
-                job_title = body['title']
-                location = body['location']
-                company = body['company']
-                user_id = str(body['user_id'])
+                job_title = body.get('title', '')
+                location = body.get('location', '')
+                company = body.get('company', '')
+                user_id = str(body.get('user_id', ''))  # Ensure user_id is a string
+
+                logger.info(f"LOGGING, USER ID: {user_id}")
 
                 email = get_user_email(user_id)
 
