@@ -14,8 +14,10 @@ def get_unix_timestamp_by_min(dt: datetime) -> int:
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-
 queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
+
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+tasks_table = dynamodb.Table('tasks')
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
@@ -24,8 +26,13 @@ if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
 def next_task_id():
-    st.session_state.next_task_id_counter += 1
-    return st.session_state.next_task_id_counter
+    response = tasks_table.scan(
+        ProjectionExpression='task_id'
+    )
+    task_ids = [item['task_id'] for item in response['Items']]
+    max_id = max(task_ids) if task_ids else 0
+    return max_id + 1
+    
 
 st.title("JobScout")
 st.text(
