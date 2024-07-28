@@ -3,6 +3,7 @@ import requests
 import json
 import boto3
 from datetime import datetime, timezone
+from task_sched_dbs.Master import DecimalEncoder
 
 def get_current_time() -> int:
     now = datetime.now(timezone.utc)
@@ -183,15 +184,15 @@ if st.button("search"):
 
             response = sqs.send_message(
                 QueueUrl=queue_url,
-                MessageBody=(
-                    json.dumps({
-                        'job_title': job_title,
-                        'location': location,
-                        'company': company
-                    })
-                )
+                MessageBody=json.dumps({
+                    'job_title': job_title,
+                    'location': location,
+                    'company': company
+                }, cls=DecimalEncoder)
             )
         else:
             st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
+
+
