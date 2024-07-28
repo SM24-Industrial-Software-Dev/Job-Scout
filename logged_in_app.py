@@ -39,15 +39,12 @@ st.text(
 query_params = st.experimental_get_query_params()
 user_id = query_params.get("user_id", [None])[0]
 
-if user_id:
-    st.session_state.user_info = {"sub": user_id}
-    st.write("User info found in session state:", st.session_state.user_info)
-else:
+if not user_id:
     st.write("User not logged in.")
-
-if st.session_state.user_info:
-    job_title = st.text_input("Job Title:")
-    states = [
+else:
+    if st.session_state.user_info:
+        job_title = st.text_input("Job Title:")
+        states = [
         '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
         'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
         'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
@@ -56,15 +53,15 @@ if st.session_state.user_info:
         'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
         'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
         'Wisconsin', 'Wyoming'
-    ]
-    location = st.selectbox(label="Location:", options=states)
-    company = st.text_input("Company:")
+        ]
+        location = st.selectbox(label="Location:", options=states)
+        company = st.text_input("Company:")
     
-    frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
-    frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+        frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+        frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-    login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-    logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
+        login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
+        logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
 
     if 'button_login_pressed' not in st.session_state:
         st.session_state.button_login_pressed = False
