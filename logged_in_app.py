@@ -27,13 +27,24 @@ if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
 def next_task_id():
-    response = tasks_table.scan(
-        ProjectionExpression='task_id'
-    )
-    task_ids = [item['task_id'] for item in response['Items']]
-    max_id = max(task_ids) if task_ids else 0
+    max_id = get_max_task_id()
     return max_id + 1
-    
+
+def get_max_task_id():
+    try:
+        # Scan the table
+        response = tasks_table.scan()
+        items = response.get('Items', [])
+
+        # Check if there are items in the table
+        if not items:
+            return None
+
+        # Extract task_ids and find the maximum value
+        max_task_id = max(int(item['task_id']) for item in items)
+        return max_task_id
+    except Exception as e:
+        st.error(f"An error occurred: {e}")    
 
 st.title("JobScout")
 st.text(
