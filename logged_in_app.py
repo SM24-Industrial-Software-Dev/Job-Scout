@@ -26,9 +26,9 @@ if 'next_task_id_counter' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
-def next_task_id():
-    max_id = get_max_task_id()
-    return max_id + 1
+def next_task_id() -> int:
+    max_id = int(get_max_task_id())
+    return int(max_id) + 1
 
 def get_max_task_id() -> int:
     try:
