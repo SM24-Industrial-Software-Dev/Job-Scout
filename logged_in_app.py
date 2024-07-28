@@ -30,7 +30,7 @@ def next_task_id():
     max_id = get_max_task_id()
     return max_id + 1
 
-def get_max_task_id():
+def get_max_task_id() -> int:
     try:
         # Scan the table
         response = tasks_table.scan()
@@ -42,7 +42,7 @@ def get_max_task_id():
 
         # Extract task_ids and find the maximum value
         max_task_id = max(int(item['task_id']) for item in items)
-        return max_task_id
+        return int(max_task_id)
     except Exception as e:
         st.error(f"An error occurred: {e}")    
 
