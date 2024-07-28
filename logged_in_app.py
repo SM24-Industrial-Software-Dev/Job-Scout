@@ -60,9 +60,9 @@ user_id = query_params.get("user_id", [None])[0]
 
 if user_id:
     st.session_state.user_info = {"sub": user_id}
-    st.write("User info found in session state:", st.session_state.user_info)
-else:
-    st.write("User not logged in.")
+    #st.write("User info found in session state:", st.session_state.user_info)
+#else:
+    #st.write("User not logged in.")
 
 if st.session_state.user_info:
     job_title = st.text_input("Job Title:")
