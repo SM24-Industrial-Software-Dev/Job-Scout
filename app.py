@@ -132,4 +132,5 @@ if st.button("Search"):
             st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
-
+if st.button('Dsiplay My Searches'):
+    pass
