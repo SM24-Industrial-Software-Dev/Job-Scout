@@ -30,19 +30,29 @@ def next_task_id() -> int:
     max_id = int(get_max_task_id())
     return int(max_id) + 1
 
-def get_max_task_id() -> int:
+def get_max_task_id():
     try:
-        # Scan the table
-        response = tasks_table.scan()
-        items = response.get('Items', [])
+        max_task_id = 0  # Default to 0 if no items are found
+        last_evaluated_key = None
 
-        # Check if there are items in the table
-        if not items:
-            return None
+        while True:
+            # Scan the table with pagination
+            response = tasks_table.scan(ExclusiveStartKey=last_evaluated_key) if last_evaluated_key else tasks_table.scan()
+            items = response.get('Items', [])
+            last_evaluated_key = response.get('LastEvaluatedKey', None)
 
-        # Extract task_ids and find the maximum value
-        max_task_id = max(int(item['task_id']) for item in items)
-        return int(max_task_id)
+            # Extract task_ids and find the maximum value in this batch
+            if items:
+                batch_max_task_id = max(int(item['task_id']) for item in items)
+                if batch_max_task_id > max_task_id:
+                    max_task_id = batch_max_task_id
+
+            # Break the loop if there are no more items to scan
+            if last_evaluated_key is None:
+                break
+
+        return max_task_id
+
     except Exception as e:
         st.error(f"An error occurred: {e}")    
 
