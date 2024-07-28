@@ -3,7 +3,6 @@ import requests
 import json
 import boto3
 from datetime import datetime, timezone
-from task_sched_dbs.Master import DecimalEncoder
 
 def get_current_time() -> int:
     now = datetime.now(timezone.utc)
@@ -15,10 +14,8 @@ def get_unix_timestamp_by_min(dt: datetime) -> int:
 
 # Initialize the SQS client
 sqs = boto3.client('sqs', region_name='us-east-2')
-queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
-tasks_table = dynamodb.Table('tasks')
+queue_url = 'https://sqs.us-east-2.amazonaws.com/767397805190/refresh-queue'  # Replace with your actual SQS Queue URL
 
 if 'next_task_id_counter' not in st.session_state:
     st.session_state.next_task_id_counter = 0
@@ -26,35 +23,9 @@ if 'next_task_id_counter' not in st.session_state:
 if 'user_info' not in st.session_state:
     st.session_state.user_info = None
 
-def next_task_id() -> int:
-    max_id = int(get_max_task_id())
-    return int(max_id) + 1
-
-def get_max_task_id():
-    try:
-        max_task_id = 0  # Default to 0 if no items are found
-        last_evaluated_key = None
-
-        while True:
-            # Scan the table with pagination
-            response = tasks_table.scan(ExclusiveStartKey=last_evaluated_key) if last_evaluated_key else tasks_table.scan()
-            items = response.get('Items', [])
-            last_evaluated_key = response.get('LastEvaluatedKey', None)
-
-            # Extract task_ids and find the maximum value in this batch
-            if items:
-                batch_max_task_id = max(int(item['task_id']) for item in items)
-                if batch_max_task_id > max_task_id:
-                    max_task_id = batch_max_task_id
-
-            # Break the loop if there are no more items to scan
-            if last_evaluated_key is None:
-                break
-
-        return max_task_id
-
-    except Exception as e:
-        st.error(f"An error occurred: {e}")    
+def next_task_id():
+    st.session_state.next_task_id_counter += 1
+    return st.session_state.next_task_id_counter
 
 st.title("JobScout")
 st.text(
@@ -65,14 +36,14 @@ st.text(
 )
 
 # Check if the user is logged in
-query_params = st.query_params()
+query_params = st.experimental_get_query_params()
 user_id = query_params.get("user_id", [None])[0]
 
 if user_id:
     st.session_state.user_info = {"sub": user_id}
-    #st.write("User info found in session state:", st.session_state.user_info)
-#else:
-    #st.write("User not logged in.")
+    st.write("User info found in session state:", st.session_state.user_info)
+else:
+    st.write("User not logged in.")
 
 if st.session_state.user_info:
     job_title = st.text_input("Job Title:")
@@ -205,15 +176,15 @@ if st.button("search"):
 
             response = sqs.send_message(
                 QueueUrl=queue_url,
-                MessageBody=json.dumps({
-                    'job_title': job_title,
-                    'location': location,
-                    'company': company
-                }, cls=DecimalEncoder)
+                MessageBody=(
+                    json.dumps({
+                        'job_title': job_title,
+                        'location': location,
+                        'company': company
+                    })
+                )
             )
         else:
             st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
-
-
