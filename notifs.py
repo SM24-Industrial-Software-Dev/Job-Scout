@@ -91,7 +91,7 @@ def process_notifs_message():
                 job_title = body['title']
                 location = body['location']
                 company = body['company']
-                user_id = body['user_id']
+                user_id = str(body['user_id'])
 
                 email = get_user_email(user_id)
 
@@ -124,10 +124,10 @@ def perform_search(job_title: str, location: str, company: str):
     
     for job in response['Items']:
         search_results.append({
-            'title': job.get('title', 'N/A'),
-            'company': job.get('company', 'N/A'),
-            'location': job.get('location', 'N/A'),
-            'link': job.get('link', '#')
+            'title': str(job.get('title', 'N/A')),
+            'company': str(job.get('company', 'N/A')),
+            'location': str(job.get('location', 'N/A')),
+            'link': str(job.get('link', '#'))
         })
 
     return search_results if search_results else [{"title": "No matching jobs found.", "company": "", "location": "", "link": ""}]
