@@ -146,7 +146,7 @@ class Executer:
             Key={'task_id': task_id}
         )
         task = response['Item']
-        user_id = task.get('user_id')
+        user_id = str(task.get('user_id'))
         
         # Optional fields
         job_id = task.get('job_id')

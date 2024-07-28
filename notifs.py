@@ -88,20 +88,24 @@ def process_notifs_message():
         if 'Messages' in response:
             for message in response['Messages']:
                 body = json.loads(message['Body'])
-                job_title = body['title']
-                location = body['location']
-                company = body['company']
-                user_email = body['email']
+                job_title = body.get('title', '')
+                location = body.get('location', '')
+                company = body.get('company', '')
+                user_id = str(body.get('user_id', ''))  # Ensure user_id is a string
+
+                logger.info(f"LOGGING, USER ID: {user_id}")
+
+                email = get_user_email(user_id)
 
                 # Perform search
                 search_results = perform_search(job_title, location, company)
                 print(search_results)
                 # Send email with results
-                #send_email(
-                 #   subject=f"Job Search Results for {job_title} in {location} at {company}",
-                  #  recipients=[user_email],
-                   # body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
-                #)
+                send_email(
+                    subject=f"Job Search Results for {job_title} in {location} at {company}",
+                    recipients=[email],
+                    body=f"Here are the job search results for {job_title} in {location} at {company}:\n\n{search_results}"
+                )
 
                 sqs_client.delete_message(
                     QueueUrl=NOTIFS_QUEUE_URL,
@@ -122,14 +126,35 @@ def perform_search(job_title: str, location: str, company: str):
     
     for job in response['Items']:
         search_results.append({
-            'title': job.get('title', 'N/A'),
-            'company': job.get('company', 'N/A'),
-            'location': job.get('location', 'N/A'),
-            'link': job.get('link', '#')
+            'title': str(job.get('title', 'N/A')),
+            'company': str(job.get('company', 'N/A')),
+            'location': str(job.get('location', 'N/A')),
+            'link': str(job.get('link', '#'))
         })
 
     return search_results if search_results else [{"title": "No matching jobs found.", "company": "", "location": "", "link": ""}]
 
+def get_user_email(user_id: str) -> str:
+    # Reference the Users table
+    table = dynamodb.Table('Users')
+    print("LOGGING, USER ID: " + user_id)
+    
+    try:
+        # Perform the query
+        response = table.get_item(
+            Key={'id': user_id}
+        )
+        
+        # Check if the user was found
+        if 'Item' in response:
+            # Extract and return the email address
+            return response['Item'].get('email', 'Email not found')
+        else:
+            return 'User not found'
+    except Exception as e:
+        print(f"Error querying table: {str(e)}")
+        return 'Error querying table'
+    
 if __name__ == "__main__":
     while True:
         process_notifs_message()

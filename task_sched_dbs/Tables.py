@@ -73,23 +73,19 @@ class Tables:
             response = self.dynamodb.create_table(
                 TableName=table_name,
                 KeySchema=[
-                    {
-                        'AttributeName': 'job_id',
-                        'KeyType': 'HASH'  # Partition key
-                    }
+                    {'AttributeName': 'job_id', 'KeyType': 'HASH'}  # Partition key
                 ],
                 AttributeDefinitions=[
-                    {
-                        'AttributeName': 'job_id',
-                        'AttributeType': 'N'  # Number
-                    }
+                    {'AttributeName': 'job_id', 'AttributeType': 'N'}  # Number
                 ],
                 ProvisionedThroughput={
                     'ReadCapacityUnits': 5,
                     'WriteCapacityUnits': 5
                 }
             )
-            print(f"Job Table creation initiated. Status: {response['TableDescription']['TableStatus']}")
+            # Wait until the table exists
+            response.wait_until_exists()
+            print(f"Job Table creation initiated. Status: {response.table_status}")
         except ClientError as e:
             if e.response['Error']['Code'] == 'ResourceInUseException':
                 print(f"Table '{table_name}' already exists.")
