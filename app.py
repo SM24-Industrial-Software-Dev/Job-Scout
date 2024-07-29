@@ -27,9 +27,9 @@ company = st.text_input("Company:")
 frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
 frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
-is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in"
+login_url = "http://jobscout.com:8080/login"
+logout_url = "http://jobscout.com:8080/logout"
+is_logged_in_url = "http://jobscout.com:8080/is_logged_in"
 
 
 
@@ -92,7 +92,7 @@ if st.button("Search"):
             try:
                 # Build the URL with query parameters
                 response = requests.get(
-                    'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
+                    'http://jobscout.com:8000/instant_search/',
                     params={
                         'role': job_title,  # Assuming job_title is used as role
                         'location': location,
