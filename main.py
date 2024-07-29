@@ -170,4 +170,4 @@ if __name__ == "__main__":
             last_refresh=0,
             type = "refresh"
         )
-    master.add_task(new_task)
+    #master.add_task(new_task)
