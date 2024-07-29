@@ -40,9 +40,9 @@ states = [
 location = st.selectbox(label="Location:", options=states)  # make empty string the default for entire U.S.
 company = st.text_input("Company:")  # can add default value
 
-login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
-is_logged_in_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/is_logged_in"
+login_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
+logout_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
+is_logged_in_url = "ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/is_logged_in"
 
 if 'button_login_pressed' not in st.session_state:
     st.session_state.button_login_pressed = False

@@ -103,7 +103,7 @@ if st.button("search"):
             try:
                 # Build the URL with query parameters
                 response = requests.get(
-                    'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/instant_search/',
+                    'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8000/instant_search/',
                     params={
                         'role': job_title,  # Assuming job_title is used as role
                         'location': location,
@@ -160,7 +160,7 @@ if st.button("search"):
 
             try:
                 fastapi_response = requests.post(
-                    'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8000/add_search/',
+                    'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8000/add_search/',
                     json=job_search_data
                 )
 
