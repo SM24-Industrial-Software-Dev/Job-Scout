@@ -1,3 +1,4 @@
+import boto3
 import streamlit as st
 import requests
 
@@ -132,5 +133,29 @@ if st.button("Search"):
             st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
+
+# AWS DynamoDB configuration
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+table = dynamodb.Table('tasks')
+
+def fetch_searches():
+    try:
+        response = table.scan()
+        return response.get('Items', [])
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        st.error("AWS credentials not found.")
+        return []
+
+def display_searches():
+    searches = fetch_searches()
+    if not searches:
+        st.write("No searches found.")
+    else:
+        for search in searches:
+            company = search.get('company', 'N/A')
+            location = search.get('location', 'N/A')
+            title = search.get('title', 'N/A')
+            st.write(f"Company: {company}, Location: {location}, Title: {title}")
+
 if st.button('Dsiplay My Searches'):
-    pass
+    display_searches()
