@@ -186,6 +186,8 @@ if st.button("search"):
     else:
         st.error("Please fill out a field before searching.")
 
+st.title("My Searches")
+
 # AWS DynamoDB configuration
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('tasks')
