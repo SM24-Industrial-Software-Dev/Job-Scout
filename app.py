@@ -151,6 +151,7 @@ def display_searches():
     if not searches:
         st.write("No searches found.")
     else:
+        search_dict = {}
         count = 1
         for search in searches:
             company = search.get('company', 'N/A')
@@ -160,8 +161,16 @@ def display_searches():
             company = company if company else 'N/A'
             location = location if location else 'N/A'
             title = title if title else 'N/A'
-            st.write(f"({count}) Company: {company}, Location: {location}, Title: {title}")
+            search_dict[count] = {
+                'company': company,
+                'location': location,
+                'title': title
+            }
             count += 1
+
+        # Display the searches using Streamlit
+        for key, value in search_dict.items():
+            st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
 
 if st.button('Dsiplay My Searches'):
     display_searches()
