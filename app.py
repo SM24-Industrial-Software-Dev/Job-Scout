@@ -155,6 +155,10 @@ def display_searches():
             company = search.get('company', 'N/A')
             location = search.get('location', 'N/A')
             title = search.get('title', 'N/A')
+            # Check if the fields are empty and set to 'N/A' if they are
+            company = company if company else 'N/A'
+            location = location if location else 'N/A'
+            title = title if title else 'N/A'
             st.write(f"Company: {company}, Location: {location}, Title: {title}")
 
 if st.button('Dsiplay My Searches'):
