@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 # OAuth configuration
 client_id = os.getenv('GOOGLE_CLIENT_ID', 'your_default_client_id')
 client_secret = os.getenv('GOOGLE_CLIENT_SECRET', 'your_default_client_secret')
-redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
+redirect_uri = 'http://jobscout.com:8080/callback'
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -108,7 +108,7 @@ def callback(code: str, request: Request):
         logging.info(userinfo)
         
         # Redirect to logged-in application
-        return RedirectResponse("http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502")  # Ensure this URL points to logged_in_app.py
+        return RedirectResponse("http://jobscout.com:8502")  # Ensure this URL points to logged_in_app.py
     except requests.exceptions.RequestException as e:
         logging.error(f"Error during token exchange: {e}")
         return {"error": str(e)}

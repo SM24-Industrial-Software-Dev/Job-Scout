@@ -9,7 +9,7 @@ app.secret_key = "CS_class_of_2027"
 
 app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
 app.config['GOOGLE_SECRET'] = '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'
-app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
+app.config['GOOGLE_REDIRECT_URI'] = 'http://jobscout.com:8080/callback'
 
 # Initialize DynamoDB client and resource
 AWS_REGION = os.getenv("AWS_REGION")
@@ -98,7 +98,7 @@ def login():
 @app.route('/logout')
 def logout():
     session.pop('user', None)
-    return redirect('http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8501')
+    return redirect('http://jobscout.com:8501')
 
 @app.route('/callback')
 def authorize():
@@ -131,7 +131,7 @@ def authorize():
     except ClientError as e:
         print(f"Error retrieving or storing user in DynamoDB: {e}")
 
-    return redirect(f'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502?user_id={user_info["sub"]}')  # Redirect to Streamlit app with user ID
+    return redirect(f'http://jobscout.com:8502?user_id={user_info["sub"]}')  # Redirect to Streamlit app with user ID
 
 
 
