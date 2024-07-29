@@ -36,7 +36,7 @@ scraper = Scraper()
 scraper.linkedin_scraper()
 new_task = Refresh(
             task_id=0,
-            interval="PT1M",
+            interval="PT6H",
             retries=3,
             created=int(datetime.now().timestamp()),
             last_refresh=0,
