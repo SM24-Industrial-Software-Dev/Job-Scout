@@ -61,8 +61,8 @@ else:
         frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
         frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-        login_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/login"
-        logout_url = "http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/logout"
+        login_url = "ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
+        logout_url = "hec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
 
     if 'button_login_pressed' not in st.session_state:
         st.session_state.button_login_pressed = False
