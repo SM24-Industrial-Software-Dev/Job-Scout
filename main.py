@@ -10,8 +10,9 @@ import refresh
 import os
 from pydantic import BaseModel
 from task_sched_dbs.Master import Master
-from task_sched_dbs.Tables import Notifs, Task
+from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
+from datetime import datetime, timezone
 from scraper import Scraper
 #from jobspy_scraper import JobScraper
 
@@ -22,11 +23,11 @@ logger = logging.getLogger(__name__)
 # OAuth configuration
 client_id = os.getenv('GOOGLE_CLIENT_ID', 'your_default_client_id')
 client_secret = os.getenv('GOOGLE_CLIENT_SECRET', 'your_default_client_secret')
-redirect_uri = 'http://jobscout.com:8080/callback'
+redirect_uri = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/callback'
 
 # Initialize FastAPI app
 app = FastAPI()
-master = Master(18)
+master = Master(10)
 #scraper = JobScraper()
 #scraper.scrape_jobs()
 #scraper.print_summary()
@@ -108,7 +109,7 @@ def callback(code: str, request: Request):
         logging.info(userinfo)
         
         # Redirect to logged-in application
-        return RedirectResponse("http://jobscout.com:8502")  # Ensure this URL points to logged_in_app.py
+        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")  # Ensure this URL points to logged_in_app.py
     except requests.exceptions.RequestException as e:
         logging.error(f"Error during token exchange: {e}")
         return {"error": str(e)}
@@ -151,12 +152,22 @@ if __name__ == "__main__":
     flask_thread.start()
     streamlit_thread.start()
     logged_in_app_thread.start()
-    #refresh_listener_thread.start()
+    refresh_listener_thread.start()
     notifs_listener_thread.start()
 
     fastapi_thread.join()
     flask_thread.join()
     streamlit_thread.join()
     logged_in_app_thread.join()
-    #refresh_listener_thread.join()
+    refresh_listener_thread.join()
     notifs_listener_thread.join()
+
+    new_task = Refresh(
+            task_id=0,
+            interval="PT1M",
+            retries=3,
+            created=int(datetime.now().timestamp()),
+            last_refresh=0,
+            type = "refresh"
+        )
+    master.add_task(new_task)
