@@ -126,7 +126,7 @@ if st.button("Search"):
                 else:
                     st.error(f"Failed to add job search. Error: {response.text}")
             except Exception as e:
-                st.error(f"An error occurred: {e}")    
+                st.error(f"An error occurred: {e}")
         elif frequencies:
             st.error("Please sign in to save a search. If you'd like to conduct an instant search, please select One-Time Instant Results")
         else:
@@ -151,6 +151,7 @@ def display_searches():
     if not searches:
         st.write("No searches found.")
     else:
+        count = 1
         for search in searches:
             company = search.get('company', 'N/A')
             location = search.get('location', 'N/A')
@@ -159,7 +160,8 @@ def display_searches():
             company = company if company else 'N/A'
             location = location if location else 'N/A'
             title = title if title else 'N/A'
-            st.write(f"Company: {company}, Location: {location}, Title: {title}")
+            st.write(f"({count}) Company: {company}, Location: {location}, Title: {title}")
+            count += 1
 
 if st.button('Dsiplay My Searches'):
     display_searches()
