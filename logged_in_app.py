@@ -28,7 +28,7 @@ def next_task_id():
     return st.session_state.next_task_id_counter
 
 st.title("JobScout")
-st.text(
+st.write(
     "JobScout is a web application that simplifies job searching by querying multiple job listing sites and saving "
     "user-defined searches. Utilizing a distributed work scheduler, it regularly updates the job listings database "
     "and notifies users of new opportunities. The application also features a user-friendly web interface for "
