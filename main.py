@@ -152,14 +152,14 @@ if __name__ == "__main__":
     flask_thread.start()
     streamlit_thread.start()
     logged_in_app_thread.start()
-    #refresh_listener_thread.start()
+    refresh_listener_thread.start()
     notifs_listener_thread.start()
 
     fastapi_thread.join()
     flask_thread.join()
     streamlit_thread.join()
     logged_in_app_thread.join()
-    #refresh_listener_thread.join()
+    refresh_listener_thread.join()
     notifs_listener_thread.join()
 
     new_task = Refresh(
@@ -170,4 +170,4 @@ if __name__ == "__main__":
             last_refresh=0,
             type = "refresh"
         )
-    #master.add_task(new_task)
+    master.add_task(new_task)
