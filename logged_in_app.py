@@ -40,57 +40,58 @@ st.write(
 query_params = st.experimental_get_query_params()
 user_id = query_params.get("user_id", [None])[0]
 
-#if not user_id:
-#    st.write("User not logged in.")
-#else:
-if st.session_state.user_info:
-    job_title = st.text_input("Job Title:")
-    states = [
-    '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-    'Wisconsin', 'Wyoming'
-    ]
-    location = st.selectbox(label="Location:", options=states)
-    company = st.text_input("Company:")
+if not user_id:
+    st.write("User not logged in.")
+else:
+    if st.session_state.user_info:
+        job_title = st.text_input("Job Title:")
+        states = [
+        '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+        'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+        'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+        'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+        'Wisconsin', 'Wyoming'
+        ]
+        location = st.selectbox(label="Location:", options=states)
+        company = st.text_input("Company:")
+    
+        frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+        frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-    frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
-    frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+        login_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
+        logout_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
 
-    login_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
-    logout_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
+    if 'button_login_pressed' not in st.session_state:
+        st.session_state.button_login_pressed = False
 
-if 'button_login_pressed' not in st.session_state:
-    st.session_state.button_login_pressed = False
+    def handle_button_logout_press():
+        st.session_state.button_login_pressed = False
+        st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
 
-def handle_button_logout_press():
-    st.session_state.button_login_pressed = False
-    st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
+    def convert_frequency_to_interval(frequency) -> str:
+        if frequency == 'Every Minute (For Testing)':
+            return "PT1M"
+        elif frequency == 'Daily':
+            return "P1D"
+        elif frequency == 'Weekly':
+            return "P7D"
+        elif frequency == 'Bimonthly':
+            return "P14D"
+        elif frequency == 'Monthly':
+            return "P30D"
+        elif frequency == 'Biweekly':
+            return "P3.5D"
+        else:
+            return "P7D"
 
-def convert_frequency_to_interval(frequency) -> str:
-    if frequency == 'Every Minute (For Testing)':
-        return "PT1M"
-    elif frequency == 'Daily':
-        return "P1D"
-    elif frequency == 'Weekly':
-        return "P7D"
-    elif frequency == 'Bimonthly':
-        return "P14D"
-    elif frequency == 'Monthly':
-        return "P30D"
-    elif frequency == 'Biweekly':
-        return "P3.5D"
-    else:
-        return "P7D"
+    # Sidebar for floating menu
+    with st.sidebar:
+        if st.button("Logout"):
+            handle_button_logout_press()
 
-# Sidebar for floating menu
-with st.sidebar:
-    if st.button("Logout"):
-        handle_button_logout_press()
 if st.button("search"):
     if job_title or location or company:
         if frequencies == 'One-Time Instant Results':
@@ -228,64 +229,3 @@ def display_searches():
 
 if st.button('Display My Searches'):
     display_searches()
-
-# PREVIOUS MY SEARCHES:
-# import streamlit as st
-# import pandas as pd
-#
-# # Define the initial DataFrame
-# df = pd.DataFrame(
-#     [
-#         {"job_title": "Software Engineer", "location": "New York", "company": "TechCorp",
-#          "date_of_search": "2024-07-01", "notification_frequency": "never"},
-#         {"job_title": "Data Scientist", "location": "San Francisco", "company": "DataInc",
-#          "date_of_search": "2024-07-02", "notification_frequency": "never"},
-#         {"job_title": "Product Manager", "location": "Chicago", "company": "ProductCo", "date_of_search": "2024-07-03",
-#          "notification_frequency": "never"},
-#     ]
-# )
-#
-# # Define the notification options
-# notifications = ['', 'never', 'hourly', 'daily', 'weekly']
-#
-# # Store selected values and delete flags in dictionaries
-# selected_notifications = {}
-# delete_flags = {}
-#
-# # Display the table headers
-# cols = st.columns(6)
-# cols[0].write("Job Title")
-# cols[1].write("Location")
-# cols[2].write("Company")
-# cols[3].write("Date of Search")
-# cols[4].write("Notification Frequency")
-# cols[5].write("Delete")
-#
-# # Display each row with input elements
-# for index, row in df.iterrows():
-#     cols = st.columns(6)
-#     cols[0].write(row["job_title"])
-#     cols[1].write(row["location"])
-#     cols[2].write(row["company"])
-#     cols[3].write(row["date_of_search"])
-#     selected_notifications[index] = cols[4].selectbox(
-#         f"Notification frequency for row {index}",
-#         options=notifications,
-#         index=notifications.index(row["notification_frequency"]) if row[
-#                                                                         "notification_frequency"] in notifications else 0,
-#         key=f"notification_{index}"
-#     )
-#     delete_flags[index] = cols[5].checkbox("Delete", key=f"delete_{index}")
-#
-# # Button to apply changes
-# if st.button("apply"):
-#     # Update the DataFrame with the selected notification frequencies
-#     for index in selected_notifications:
-#         df.at[index, "notification_frequency"] = selected_notifications[index]
-#
-#     # Delete the rows marked for deletion
-#     df = df[~df.index.isin([index for index, flag in delete_flags.items() if flag])]
-#     st.success('Your notification settings have successfully been updated!')
-#
-# # Display the updated DataFrame
-# st.dataframe(df)
