@@ -3,6 +3,7 @@ import requests
 import json
 import boto3
 from datetime import datetime, timezone
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 def get_current_time() -> int:
     now = datetime.now(timezone.utc)
@@ -28,7 +29,7 @@ def next_task_id():
     return st.session_state.next_task_id_counter
 
 st.title("JobScout")
-st.text(
+st.write(
     "JobScout is a web application that simplifies job searching by querying multiple job listing sites and saving "
     "user-defined searches. Utilizing a distributed work scheduler, it regularly updates the job listings database "
     "and notifies users of new opportunities. The application also features a user-friendly web interface for "
@@ -185,3 +186,46 @@ if st.button("search"):
             st.error("Please choose a notification setting.")
     else:
         st.error("Please fill out a field before searching.")
+
+st.title("My Searches")
+
+# AWS DynamoDB configuration
+dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+table = dynamodb.Table('tasks')
+
+def fetch_searches():
+    try:
+        response = table.scan()
+        return response.get('Items', [])
+    except (NoCredentialsError, PartialCredentialsError) as e:
+        st.error("AWS credentials not found.")
+        return []
+
+def display_searches():
+    searches = fetch_searches()
+    if not searches:
+        st.write("No searches found.")
+    else:
+        search_dict = {}
+        count = 1
+        for search in searches:
+            company = search.get('company', 'N/A')
+            location = search.get('location', 'N/A')
+            title = search.get('title', 'N/A')
+            # Check if the fields are empty and set to 'N/A' if they are
+            company = company if company else 'N/A'
+            location = location if location else 'N/A'
+            title = title if title else 'N/A'
+            search_dict[count] = {
+                'company': company,
+                'location': location,
+                'title': title
+            }
+            count += 1
+
+        # Display the searches using Streamlit
+        for key, value in search_dict.items():
+            st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
+
+if st.button('Dsiplay My Searches'):
+    display_searches()
