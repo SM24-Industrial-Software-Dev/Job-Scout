@@ -40,58 +40,57 @@ st.write(
 query_params = st.experimental_get_query_params()
 user_id = query_params.get("user_id", [None])[0]
 
-if not user_id:
-    st.write("User not logged in.")
-else:
-    if st.session_state.user_info:
-        job_title = st.text_input("Job Title:")
-        states = [
-        '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
-        'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
-        'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
-        'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
-        'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
-        'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
-        'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
-        'Wisconsin', 'Wyoming'
-        ]
-        location = st.selectbox(label="Location:", options=states)
-        company = st.text_input("Company:")
-    
-        frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
-        frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
+#if not user_id:
+#    st.write("User not logged in.")
+#else:
+if st.session_state.user_info:
+    job_title = st.text_input("Job Title:")
+    states = [
+    '', 'Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut',
+    'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa',
+    'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan',
+    'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire',
+    'New Jersey', 'New Mexico', 'New York', 'North Carolina', 'North Dakota', 'Ohio',
+    'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota',
+    'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia',
+    'Wisconsin', 'Wyoming'
+    ]
+    location = st.selectbox(label="Location:", options=states)
+    company = st.text_input("Company:")
 
-        login_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
-        logout_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
+    frequency = ['', 'One-Time Instant Results', 'Every Minute (For Testing)', 'Daily', 'Biweekly', 'Weekly', 'Bimonthly', 'Monthly']
+    frequencies = st.selectbox(label="How often would you like to be notified?:", options=frequency)
 
-    if 'button_login_pressed' not in st.session_state:
-        st.session_state.button_login_pressed = False
+    login_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/login"
+    logout_url = "http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/logout"
 
-    def handle_button_logout_press():
-        st.session_state.button_login_pressed = False
-        st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
+if 'button_login_pressed' not in st.session_state:
+    st.session_state.button_login_pressed = False
 
-    def convert_frequency_to_interval(frequency) -> str:
-        if frequency == 'Every Minute (For Testing)':
-            return "PT1M"
-        elif frequency == 'Daily':
-            return "P1D"
-        elif frequency == 'Weekly':
-            return "P7D"
-        elif frequency == 'Bimonthly':
-            return "P14D"
-        elif frequency == 'Monthly':
-            return "P30D"
-        elif frequency == 'Biweekly':
-            return "P3.5D"
-        else:
-            return "P7D"
+def handle_button_logout_press():
+    st.session_state.button_login_pressed = False
+    st.markdown(f'<meta http-equiv="refresh" content="0; url={logout_url}">', unsafe_allow_html=True)
 
-    # Sidebar for floating menu
-    with st.sidebar:
-        if st.button("Logout"):
-            handle_button_logout_press()
+def convert_frequency_to_interval(frequency) -> str:
+    if frequency == 'Every Minute (For Testing)':
+        return "PT1M"
+    elif frequency == 'Daily':
+        return "P1D"
+    elif frequency == 'Weekly':
+        return "P7D"
+    elif frequency == 'Bimonthly':
+        return "P14D"
+    elif frequency == 'Monthly':
+        return "P30D"
+    elif frequency == 'Biweekly':
+        return "P3.5D"
+    else:
+        return "P7D"
 
+# Sidebar for floating menu
+with st.sidebar:
+    if st.button("Logout"):
+        handle_button_logout_press()
 if st.button("search"):
     if job_title or location or company:
         if frequencies == 'One-Time Instant Results':
