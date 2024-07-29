@@ -3,6 +3,7 @@ import requests
 import json
 import boto3
 from datetime import datetime, timezone
+from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 
 def get_current_time() -> int:
     now = datetime.now(timezone.utc)
