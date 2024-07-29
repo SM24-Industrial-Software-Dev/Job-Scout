@@ -34,6 +34,15 @@ master = Master(10)
 #scraper.save_jobs_to_json("jobs.json")
 scraper = Scraper()
 scraper.linkedin_scraper()
+new_task = Refresh(
+            task_id=0,
+            interval="PT1M",
+            retries=3,
+            created=int(datetime.now().timestamp()),
+            last_refresh=0,
+            type = "refresh"
+        )
+master.add_task(new_task)
 
 # Start the master scheduler in the background
 master_thread = threading.Thread(target=master.run, daemon=True)
@@ -161,13 +170,3 @@ if __name__ == "__main__":
     logged_in_app_thread.join()
     refresh_listener_thread.join()
     notifs_listener_thread.join()
-
-    new_task = Refresh(
-            task_id=0,
-            interval="PT1M",
-            retries=3,
-            created=int(datetime.now().timestamp()),
-            last_refresh=0,
-            type = "refresh"
-        )
-    master.add_task(new_task)
