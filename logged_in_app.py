@@ -227,5 +227,5 @@ def display_searches():
         for key, value in search_dict.items():
             st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
 
-if st.button('Dsiplay My Searches'):
+if st.button('Display My Searches'):
     display_searches()
