@@ -7,7 +7,6 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
-
 # Load environment variables from .env file
 load_dotenv()
 
