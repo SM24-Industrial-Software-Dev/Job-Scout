@@ -15,9 +15,12 @@ from flask_application import app as flask_app
 from datetime import datetime, timezone
 from scraper import Scraper
 <<<<<<< HEAD
+<<<<<<< HEAD
 from jobspy_scraper import JobScraper
 =======
 >>>>>>> 22c435f0f9df07ceb92d7fd4ef302daa07790bfd
+=======
+>>>>>>> b30e3838914e4d81e625f05ed35f75fb5c2a4b7d
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -39,13 +42,13 @@ print("debugging")
 jobspy_scraper.add_jobs_to_db_from_json("jobs.json")
 
 new_task = Refresh(
-            task_id=0,
-            interval="PT6H",
-            retries=3,
-            created=int(datetime.now().timestamp()),
-            last_refresh=0,
-            type = "refresh"
-        )
+    task_id=0,
+    interval="PT6H",
+    retries=3,
+    created=int(datetime.now().timestamp()),
+    last_refresh=0,
+    type="refresh"
+)
 master.add_task(new_task)
 
 
@@ -76,7 +79,6 @@ def add_job_search(job_search: Notifs):
 def scrape_jobs(role: str, location: str, company: str):
     try:
         results = notifs.perform_search(role, location, company)
-        print(results)
         return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -123,7 +125,7 @@ def callback(code: str, request: Request):
         logging.info(userinfo)
         
         # Redirect to logged-in application
-        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")  # Ensure this URL points to logged_in_app.py
+        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")
     except requests.exceptions.RequestException as e:
         logging.error(f"Error during token exchange: {e}")
         return {"error": str(e)}
@@ -131,7 +133,6 @@ def callback(code: str, request: Request):
 @app.get("/is_logged_in")
 def is_logged_in():
     # Implement a check for login status
-    # For now, just return a dummy response
     return {"status": "success", "name": "John Doe"}
 
 def run_fastapi():
