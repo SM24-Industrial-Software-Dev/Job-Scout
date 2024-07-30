@@ -237,7 +237,8 @@ def fetch_searches_by_user(user_id):
         response = table.query(
             IndexName='user_id-index',
             KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
-            ProjectionExpression="location, company, interval, title"
+            ProjectionExpression='#loc, company, interval, title',
+            ExpressionAttributeNames={'#loc': 'location'}
         )
         return response.get('Items', [])
     except (NoCredentialsError, PartialCredentialsError) as e:
