@@ -239,7 +239,7 @@ def fetch_searches_by_user(user_id):
         response = table.query(
             IndexName='user_id-index',
             KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
-            ProjectionExpression='#loc, company, #inter, title, created',
+            ProjectionExpression='#loc, company, #inter, title',
             ExpressionAttributeNames={
                 '#loc': 'location',
                 '#inter': 'interval'
@@ -258,10 +258,7 @@ def display_searches(user_id):
     if not searches:
         st.write("No saved searches.")
     else:
-        # Sort searches by the 'created' attribute (assumed to be a timestamp)
-        sorted_searches = sorted(searches, key=lambda x: x['created'])
-
-        for index, search in enumerate(sorted_searches, start=1):
+        for index, search in enumerate(searches, start=1):
             display_text = []
             company = search.get('company')
             location = search.get('location')
