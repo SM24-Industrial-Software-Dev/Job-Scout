@@ -29,11 +29,7 @@ redirect_uri = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/ca
 app = FastAPI()
 master = Master(10)
 scraper = Scraper()
-#scraper.linkedin_scraper()
-jobspy_scraper = JobScraper()
-jobspy_scraper.scrape_jobs()
-print("debugging")
-jobspy_scraper.add_jobs_to_db_from_json("jobs.json")
+scraper.linkedin_scraper()
 
 new_task = Refresh(
     task_id=0,
