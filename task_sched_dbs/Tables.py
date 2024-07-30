@@ -134,7 +134,22 @@ class Tables:
                 'attribute_definitions': [
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
                 ],
-                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5}
+                'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5},
+                'global_secondary_indexes': [
+                    {
+                        'IndexName': 'user_id-index',
+                        'KeySchema': [
+                            {'AttributeName': 'user_id', 'KeyType': 'HASH'}
+                        ],
+                        'Projection': {
+                            'ProjectionType': 'ALL'
+                        },
+                        'ProvisionedThroughput': {
+                            'ReadCapacityUnits': 5,
+                            'WriteCapacityUnits': 5
+                        }
+                    }
+                ]
             },
             'executions': {
                 'key_schema': [
