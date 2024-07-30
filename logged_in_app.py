@@ -238,7 +238,7 @@ def fetch_searches_by_user(user_id):
     try:
         response = table.query(
             IndexName='user_id-index',
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(int(user_id)),
             ProjectionExpression='#loc, company, #inter, title',
             ExpressionAttributeNames={
                 '#loc': 'location',
