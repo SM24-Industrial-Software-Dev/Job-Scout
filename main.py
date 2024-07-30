@@ -9,9 +9,6 @@ import notifs
 import refresh
 import os
 from pydantic import BaseModel
-
-from jobspy_scraper import JobScraper
-
 from task_sched_dbs.Master import Master
 from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
@@ -33,11 +30,6 @@ app = FastAPI()
 master = Master(10)
 scraper = Scraper()
 scraper.linkedin_scraper()
-
-# JobSpy scraper
-scraper = JobScraper()
-scraper.scrape_jobs()
-scraper.add_jobs_to_db_from_json("jobs.json")
 
 new_task = Refresh(
     task_id=0,
