@@ -14,7 +14,10 @@ from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
 from datetime import datetime, timezone
 from scraper import Scraper
+<<<<<<< HEAD
 from jobspy_scraper import JobScraper
+=======
+>>>>>>> 22c435f0f9df07ceb92d7fd4ef302daa07790bfd
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
