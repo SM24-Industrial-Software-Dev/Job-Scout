@@ -190,45 +190,74 @@ if st.button("search"):
 
 
 st.title("My Searches")
-st.write(user_id)
 
-# AWS DynamoDB configuration
+# # AWS DynamoDB configuration
+# dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+# table = dynamodb.Table('tasks')
+#
+# def fetch_searches():
+#     try:
+#         response = table.scan()
+#         return response.get('Items', [])
+#     except (NoCredentialsError, PartialCredentialsError) as e:
+#         st.error("AWS credentials not found.")
+#         return []
+#
+# def display_searches():
+#     searches = fetch_searches()
+#     if not searches:
+#         st.write("No searches found.")
+#     else:
+#         search_dict = {}
+#         count = 1
+#         for search in searches:
+#             company = search.get('company', 'N/A')
+#             location = search.get('location', 'N/A')
+#             title = search.get('title', 'N/A')
+#             # Check if the fields are empty and set to 'N/A' if they are
+#             company = company if company else 'N/A'
+#             location = location if location else 'N/A'
+#             title = title if title else 'N/A'
+#             search_dict[count] = {
+#                 'company': company,
+#                 'location': location,
+#                 'title': title
+#             }
+#             count += 1
+#
+#         # Display the searches using Streamlit
+#         for key, value in search_dict.items():
+#             st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
+
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('tasks')
 
-def fetch_searches():
+def fetch_searches_by_user(user_id):
     try:
-        response = table.scan()
+        response = table.query(
+            IndexName='user_id-index',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
+            ProjectionExpression="location, company, interval, title"
+        )
         return response.get('Items', [])
     except (NoCredentialsError, PartialCredentialsError) as e:
         st.error("AWS credentials not found.")
         return []
+    except Exception as e:
+        st.error(f"An error occurred: {e}")
+        return []
 
-def display_searches():
-    searches = fetch_searches()
+def display_searches(user_id):
+    searches = fetch_searches_by_user(user_id)
     if not searches:
-        st.write("No searches found.")
+        st.write("No saved searches.")
     else:
-        search_dict = {}
-        count = 1
         for search in searches:
             company = search.get('company', 'N/A')
             location = search.get('location', 'N/A')
             title = search.get('title', 'N/A')
-            # Check if the fields are empty and set to 'N/A' if they are
-            company = company if company else 'N/A'
-            location = location if location else 'N/A'
-            title = title if title else 'N/A'
-            search_dict[count] = {
-                'company': company,
-                'location': location,
-                'title': title
-            }
-            count += 1
-
-        # Display the searches using Streamlit
-        for key, value in search_dict.items():
-            st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
+            interval = search.get('interval', 'N/A')
+            st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {interval}")
 
 if st.button('Display My Searches'):
-    display_searches()
+    display_searches(user_id)
