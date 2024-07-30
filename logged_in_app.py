@@ -190,6 +190,7 @@ if st.button("search"):
 
 
 st.title("My Searches")
+st.write(user_id)
 
 # AWS DynamoDB configuration
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
