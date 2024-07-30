@@ -13,7 +13,6 @@ from task_sched_dbs.Master import Master
 from task_sched_dbs.Tables import Notifs, Task
 from flask_application import app as flask_app
 from scraper import Scraper
-from jobspy_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
