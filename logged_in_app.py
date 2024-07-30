@@ -238,28 +238,30 @@ def fetch_searches_by_user(user_id):
     try:
         response = table.query(
             IndexName='user_id-index',
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(int(user_id)),
-            ProjectionExpression='#loc, company, #inter, title',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
+            ProjectionExpression='#loc, company, #inter, title, created',
             ExpressionAttributeNames={
                 '#loc': 'location',
                 '#inter': 'interval'
             }
         )
         return response.get('Items', [])
-    except (NoCredentialsError, PartialCredentialsError):
+    except (NoCredentialsError, PartialCredentialsError) as e:
         st.error("AWS credentials not found.")
         return []
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return []
 
-# Function to display searches
 def display_searches(user_id):
     searches = fetch_searches_by_user(user_id)
     if not searches:
         st.write("No saved searches.")
     else:
-        for search in searches:
+        # Sort searches by the 'created' attribute (assumed to be a timestamp)
+        sorted_searches = sorted(searches, key=lambda x: x['created'])
+
+        for index, search in enumerate(sorted_searches, start=1):
             display_text = []
             company = search.get('company')
             location = search.get('location')
@@ -274,7 +276,7 @@ def display_searches(user_id):
                 display_text.append(f"Title: {title}")
             display_text.append(f"Interval: {convert_interval_to_frequency(interval)}")
 
-            st.write(", ".join(display_text))
+            st.write(f"{index}. " + ", ".join(display_text))
 
 def convert_interval_to_frequency(interval) -> str:
     if interval == "PT1M":
