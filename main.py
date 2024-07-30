@@ -32,6 +32,7 @@ scraper = Scraper()
 #scraper.linkedin_scraper()
 jobspy_scraper = JobScraper()
 jobspy_scraper.scrape_jobs()
+print("debugging")
 jobspy_scraper.add_jobs_to_db_from_json("jobs.json")
 
 new_task = Refresh(
