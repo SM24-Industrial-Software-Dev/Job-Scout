@@ -260,12 +260,21 @@ def display_searches(user_id):
         st.write("No saved searches.")
     else:
         for search in searches:
-            company = search.get('company', 'N/A')
-            location = search.get('location', 'N/A')
-            title = search.get('title', 'N/A')
+            display_text = []
+            company = search.get('company')
+            location = search.get('location')
+            title = search.get('title')
             interval = search.get('interval', 'N/A')
-            converted_interval = convert_interval_to_frequency(interval)
-            st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {converted_interval}")
+
+            if company:
+                display_text.append(f"Company: {company}")
+            if location:
+                display_text.append(f"Location: {location}")
+            if title:
+                display_text.append(f"Title: {title}")
+            display_text.append(f"Interval: {convert_interval_to_frequency(interval)}")
+
+            st.write(", ".join(display_text))
 
 def convert_interval_to_frequency(interval) -> str:
     if interval == "PT1M":
