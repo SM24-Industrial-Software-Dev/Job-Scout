@@ -27,13 +27,10 @@ redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/cal
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(10)
-<<<<<<< HEAD
 scraper = Scraper()
 scraper.linkedin_scraper()
-=======
 scraper = JobScraper()
 scraper.scrape_jobs()
->>>>>>> 5e2fbff40ddd22bc0828c6e3dcb1cf6f9ca539e3
 
 new_task = Refresh(
     task_id=0,
