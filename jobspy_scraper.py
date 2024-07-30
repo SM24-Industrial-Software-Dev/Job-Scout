@@ -1,10 +1,11 @@
 import json
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
-#from jobspy import scrape_jobs
+from jobspy import scrape_jobs
 from datetime import date, datetime
 from decimal import Decimal
 import math
+
 
 class DateTimeEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -13,6 +14,7 @@ class DateTimeEncoder(json.JSONEncoder):
         if isinstance(obj, Decimal):
             return float(obj)
         return super().default(obj)
+
 
 def convert_to_decimals(item):
     for key, value in item.items():
@@ -25,13 +27,14 @@ def convert_to_decimals(item):
             convert_to_decimals(value)
     return item
 
+
 class JobScraper:
     def __init__(self, region_name='us-east-2', table_name='Jobs'):
         self.dynamodb = boto3.resource('dynamodb', region_name=region_name)
         self.table = self.dynamodb.Table(table_name)
         self.jobs = None
 
-    def scrape_jobs(self):
+    # def scrape_jobs(self):
         # Hardcoded parameters
         site_names = ["indeed", "linkedin", "zip_recruiter", "glassdoor"]
         search_term = ""  # Broad search
@@ -68,7 +71,8 @@ class JobScraper:
                 if isinstance(job, dict):  # Ensure job is a dictionary
                     item = {
                         'job_id': job_counter,  # Generate unique job_id as number
-                        'title': job.get('title', 'N/A'),  # Use 'title' from JSON
+                        # Use 'title' from JSON
+                        'title': job.get('title', 'N/A'),
                         'company': job.get('company', 'N/A'),
                         'location': job.get('location', 'N/A'),
                         'link': job.get('job_url', 'N/A'),
@@ -82,9 +86,11 @@ class JobScraper:
                     except (NoCredentialsError, PartialCredentialsError) as e:
                         print(f"Credentials error: {str(e)}")
                     except Exception as e:
-                        print(f"Error adding job {item['job_id']} to DynamoDB: {str(e)}")
+                        print(
+                            f"Error adding job {item['job_id']} to DynamoDB: {str(e)}")
         except Exception as e:
             print(f"Error reading JSON file: {str(e)}")
+
 
 if __name__ == "__main__":
     scraper = JobScraper()
