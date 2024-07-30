@@ -14,7 +14,6 @@ from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
 from datetime import datetime, timezone
 from scraper import Scraper
-#from jobspy_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,20 +27,16 @@ redirect_uri = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/ca
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(10)
-#scraper = JobScraper()
-#scraper.scrape_jobs()
-#scraper.print_summary()
-#scraper.save_jobs_to_json("jobs.json")
 scraper = Scraper()
 scraper.linkedin_scraper()
 new_task = Refresh(
-            task_id=0,
-            interval="PT6H",
-            retries=3,
-            created=int(datetime.now().timestamp()),
-            last_refresh=0,
-            type = "refresh"
-        )
+    task_id=0,
+    interval="PT6H",
+    retries=3,
+    created=int(datetime.now().timestamp()),
+    last_refresh=0,
+    type="refresh"
+)
 master.add_task(new_task)
 
 # Start the master scheduler in the background
@@ -71,7 +66,6 @@ def add_job_search(job_search: Notifs):
 def scrape_jobs(role: str, location: str, company: str):
     try:
         results = notifs.perform_search(role, location, company)
-        print(results)
         return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -118,7 +112,7 @@ def callback(code: str, request: Request):
         logging.info(userinfo)
         
         # Redirect to logged-in application
-        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")  # Ensure this URL points to logged_in_app.py
+        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")
     except requests.exceptions.RequestException as e:
         logging.error(f"Error during token exchange: {e}")
         return {"error": str(e)}
@@ -126,7 +120,6 @@ def callback(code: str, request: Request):
 @app.get("/is_logged_in")
 def is_logged_in():
     # Implement a check for login status
-    # For now, just return a dummy response
     return {"status": "success", "name": "John Doe"}
 
 def run_fastapi():
