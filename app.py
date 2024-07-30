@@ -134,43 +134,43 @@ if st.button("Search"):
     else:
         st.error("Please fill out a field before searching.")
 
-# AWS DynamoDB configuration
-dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
-table = dynamodb.Table('tasks')
-
-def fetch_searches():
-    try:
-        response = table.scan()
-        return response.get('Items', [])
-    except (NoCredentialsError, PartialCredentialsError) as e:
-        st.error("AWS credentials not found.")
-        return []
-
-def display_searches():
-    searches = fetch_searches()
-    if not searches:
-        st.write("No searches found.")
-    else:
-        search_dict = {}
-        count = 1
-        for search in searches:
-            company = search.get('company', 'N/A')
-            location = search.get('location', 'N/A')
-            title = search.get('title', 'N/A')
-            # Check if the fields are empty and set to 'N/A' if they are
-            company = company if company else 'N/A'
-            location = location if location else 'N/A'
-            title = title if title else 'N/A'
-            search_dict[count] = {
-                'company': company,
-                'location': location,
-                'title': title
-            }
-            count += 1
-
-        # Display the searches using Streamlit
-        for key, value in search_dict.items():
-            st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
-
-if st.button('Dsiplay My Searches'):
-    display_searches()
+# # AWS DynamoDB configuration
+# dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
+# table = dynamodb.Table('tasks')
+#
+# def fetch_searches():
+#     try:
+#         response = table.scan()
+#         return response.get('Items', [])
+#     except (NoCredentialsError, PartialCredentialsError) as e:
+#         st.error("AWS credentials not found.")
+#         return []
+#
+# def display_searches():
+#     searches = fetch_searches()
+#     if not searches:
+#         st.write("No searches found.")
+#     else:
+#         search_dict = {}
+#         count = 1
+#         for search in searches:
+#             company = search.get('company', 'N/A')
+#             location = search.get('location', 'N/A')
+#             title = search.get('title', 'N/A')
+#             # Check if the fields are empty and set to 'N/A' if they are
+#             company = company if company else 'N/A'
+#             location = location if location else 'N/A'
+#             title = title if title else 'N/A'
+#             search_dict[count] = {
+#                 'company': company,
+#                 'location': location,
+#                 'title': title
+#             }
+#             count += 1
+#
+#         # Display the searches using Streamlit
+#         for key, value in search_dict.items():
+#             st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
+#
+# if st.button('Dsiplay My Searches'):
+#     display_searches()
