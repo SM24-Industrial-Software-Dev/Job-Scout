@@ -229,28 +229,31 @@ st.title("My Searches")
 #         for key, value in search_dict.items():
 #             st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
 
+# Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('tasks')
 
+# Function to fetch searches by user_id
 def fetch_searches_by_user(user_id):
     try:
         response = table.query(
             IndexName='user_id-index',
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
-            ProjectionExpression='#loc, company, #intrvl, title',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(int(user_id)),
+            ProjectionExpression='#loc, company, #inter, title',
             ExpressionAttributeNames={
                 '#loc': 'location',
-                '#intrvl': 'interval'
+                '#inter': 'interval'
             }
         )
         return response.get('Items', [])
-    except (NoCredentialsError, PartialCredentialsError) as e:
+    except (NoCredentialsError, PartialCredentialsError):
         st.error("AWS credentials not found.")
         return []
     except Exception as e:
         st.error(f"An error occurred: {e}")
         return []
 
+# Function to display searches
 def display_searches(user_id):
     searches = fetch_searches_by_user(user_id)
     if not searches:
