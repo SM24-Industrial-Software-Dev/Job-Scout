@@ -264,7 +264,24 @@ def display_searches(user_id):
             location = search.get('location', 'N/A')
             title = search.get('title', 'N/A')
             interval = search.get('interval', 'N/A')
-            st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {interval}")
+            converted_interval = convert_interval_to_frequency(interval)
+            st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {converted_interval}")
+
+def convert_interval_to_frequency(interval) -> str:
+    if interval == "PT1M":
+        return 'Every Minute (For Testing)'
+    elif interval == "P1D":
+        return 'Daily'
+    elif interval == "P7D":
+        return 'Weekly'
+    elif interval == "P14D":
+        return 'Bimonthly'
+    elif interval == "P30D":
+        return 'Monthly'
+    elif interval == "P3.5D":
+        return 'Biweekly'
+    else:
+        return 'Weekly'
 
 if st.button('Display My Searches'):
     display_searches(user_id)
