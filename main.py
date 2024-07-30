@@ -14,7 +14,7 @@ from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
 from datetime import datetime, timezone
 from scraper import Scraper
-#from jobspy_scraper import JobScraper
+from jobspy_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -28,12 +28,12 @@ redirect_uri = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/ca
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(10)
-#scraper = JobScraper()
-#scraper.scrape_jobs()
-#scraper.print_summary()
-#scraper.save_jobs_to_json("jobs.json")
 scraper = Scraper()
-scraper.linkedin_scraper()
+#scraper.linkedin_scraper()
+jobspy_scraper = JobScraper()
+jobspy_scraper.scrape_jobs()
+jobspy_scraper.add_jobs_to_db_from_json("jobs.json")
+
 new_task = Refresh(
             task_id=0,
             interval="PT6H",
@@ -43,6 +43,7 @@ new_task = Refresh(
             type = "refresh"
         )
 master.add_task(new_task)
+
 
 # Start the master scheduler in the background
 master_thread = threading.Thread(target=master.run, daemon=True)

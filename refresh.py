@@ -7,6 +7,7 @@ from botocore.exceptions import NoCredentialsError, PartialCredentialsError
 from bs4 import BeautifulSoup
 import requests
 from dotenv import load_dotenv
+from jobspy_scraper import JobScraper
 
 # Load environment variables from .env file
 load_dotenv()
@@ -123,8 +124,10 @@ def process_refresh_message():
             logger.info(f'Received refresh message: {message}')
             try:
                 # Call the Linkedin scraper (refreshing the database)
-                linkedin_scraper("default_job_title", "default_location", 0)
-                
+                #linkedin_scraper("default_job_title", "default_location", 0)
+                jobspy_scraper = JobScraper()
+                jobspy_scraper.scrape_jobs()
+                jobspy_scraper.add_jobs_to_db_from_json("jobs.json")
                 # Delete the message from the queue after processing
                 sqs_client.delete_message(
                     QueueUrl=REFRESH_QUEUE_URL,
