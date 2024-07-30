@@ -28,8 +28,6 @@ app = FastAPI()
 master = Master(10)
 scraper = Scraper()
 scraper.linkedin_scraper()
-scraper = JobScraper()
-scraper.scrape_jobs()
 
 new_task = Refresh(
     task_id=0,
