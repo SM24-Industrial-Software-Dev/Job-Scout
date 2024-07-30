@@ -10,11 +10,10 @@ import refresh
 import os
 from pydantic import BaseModel
 from task_sched_dbs.Master import Master
-from task_sched_dbs.Tables import Notifs, Task, Refresh
+from task_sched_dbs.Tables import Notifs, Task
 from flask_application import app as flask_app
-from datetime import datetime, timezone
 from scraper import Scraper
-
+from jobspy_scraper import JobScraper
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -23,13 +22,18 @@ logger = logging.getLogger(__name__)
 # OAuth configuration
 client_id = os.getenv('GOOGLE_CLIENT_ID', 'your_default_client_id')
 client_secret = os.getenv('GOOGLE_CLIENT_SECRET', 'your_default_client_secret')
-redirect_uri = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/callback'
+redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/callback'
 
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(10)
+<<<<<<< HEAD
 scraper = Scraper()
 scraper.linkedin_scraper()
+=======
+scraper = JobScraper()
+scraper.scrape_jobs()
+>>>>>>> 5e2fbff40ddd22bc0828c6e3dcb1cf6f9ca539e3
 
 new_task = Refresh(
     task_id=0,
@@ -69,6 +73,7 @@ def add_job_search(job_search: Notifs):
 def scrape_jobs(role: str, location: str, company: str):
     try:
         results = notifs.perform_search(role, location, company)
+        print(results)
         return {"results": results}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -115,7 +120,7 @@ def callback(code: str, request: Request):
         logging.info(userinfo)
         
         # Redirect to logged-in application
-        return RedirectResponse("http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8502")
+        return RedirectResponse("http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8502")  # Ensure this URL points to logged_in_app.py
     except requests.exceptions.RequestException as e:
         logging.error(f"Error during token exchange: {e}")
         return {"error": str(e)}
@@ -123,6 +128,7 @@ def callback(code: str, request: Request):
 @app.get("/is_logged_in")
 def is_logged_in():
     # Implement a check for login status
+    # For now, just return a dummy response
     return {"status": "success", "name": "John Doe"}
 
 def run_fastapi():
@@ -157,12 +163,12 @@ if __name__ == "__main__":
     flask_thread.start()
     streamlit_thread.start()
     logged_in_app_thread.start()
-    refresh_listener_thread.start()
+    #refresh_listener_thread.start()
     notifs_listener_thread.start()
 
     fastapi_thread.join()
     flask_thread.join()
     streamlit_thread.join()
     logged_in_app_thread.join()
-    refresh_listener_thread.join()
+    #refresh_listener_thread.join()
     notifs_listener_thread.join()
