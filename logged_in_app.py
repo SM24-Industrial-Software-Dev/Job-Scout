@@ -260,4 +260,4 @@ def display_searches(user_id):
             st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {interval}")
 
 if st.button('Display My Searches'):
-    display_searches()
+    display_searches(user_id)
