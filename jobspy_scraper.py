@@ -34,7 +34,7 @@ class JobScraper:
         self.table = self.dynamodb.Table(table_name)
         self.jobs = None
 
-    # def scrape_jobs(self):
+    def scrape_jobs(self):
         # Hardcoded parameters
         site_names = ["indeed", "linkedin", "zip_recruiter", "glassdoor"]
         search_term = ""  # Broad search
