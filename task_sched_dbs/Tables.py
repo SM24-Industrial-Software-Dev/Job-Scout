@@ -133,6 +133,7 @@ class Tables:
                 ],
                 'attribute_definitions': [
                     {'AttributeName': 'task_id', 'AttributeType': 'N'},
+                    {'AttributeName': 'user_id', 'AttributeType': 'N'},
                 ],
                 'provisioned_throughput': {'ReadCapacityUnits': 5, 'WriteCapacityUnits': 5},
                 'global_secondary_indexes': [

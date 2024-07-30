@@ -9,6 +9,9 @@ import notifs
 import refresh
 import os
 from pydantic import BaseModel
+
+from jobspy_scraper import JobScraper
+
 from task_sched_dbs.Master import Master
 from task_sched_dbs.Tables import Notifs, Task
 from flask_application import app as flask_app
@@ -26,13 +29,20 @@ redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/cal
 
 # Initialize FastAPI app
 app = FastAPI()
-master = Master(18)
-#scraper = JobScraper()
-#scraper.scrape_jobs()
-#scraper.print_summary()
-#scraper.save_jobs_to_json("jobs.json")
+master = Master(10)
 scraper = JobScraper()
 scraper.scrape_jobs()
+
+new_task = Refresh(
+    task_id=0,
+    interval="PT6H",
+    retries=3,
+    created=int(datetime.now().timestamp()),
+    last_refresh=0,
+    type="refresh"
+)
+master.add_task(new_task)
+
 
 # Start the master scheduler in the background
 master_thread = threading.Thread(target=master.run, daemon=True)

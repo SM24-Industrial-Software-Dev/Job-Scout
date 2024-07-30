@@ -237,10 +237,10 @@ def fetch_searches_by_user(user_id):
         response = table.query(
             IndexName='user_id-index',
             KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
-            ProjectionExpression='#loc, company, #inter, title',
+            ProjectionExpression='#loc, company, #intrvl, title',
             ExpressionAttributeNames={
                 '#loc': 'location',
-                '#inter': 'interval'
+                '#intrvl': 'interval'
             }
         )
         return response.get('Items', [])
