@@ -1,7 +1,7 @@
 import json
 import boto3
 from botocore.exceptions import NoCredentialsError, PartialCredentialsError
-from jobspy import scrape_jobs
+#from jobspy import scrape_jobs
 from datetime import date, datetime
 from decimal import Decimal
 import math
