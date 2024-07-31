@@ -134,6 +134,37 @@ if st.button("Search"):
     else:
         st.error("Please fill out a field before searching.")
 
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.text("")
+st.info("The following is for demo purposes and still needs to be integrated with the rest of the application:")
+st.title("Display all Jobs")
+if st.button("Jobs"):
+    # Initialize a session using Amazon DynamoDB
+    session = boto3.Session(
+        region_name='us-east-2'  # Specify the region
+    )
+
+    # Initialize DynamoDB resource
+    dynamodb = session.resource('dynamodb')
+
+    # Specify the table
+    table = dynamodb.Table('Jobs')
+
+    # Scan the table to get all items
+    response = table.scan()
+    jobs = response.get('Items', [])
+
+    for job in jobs:
+        st.write(f"**Company:** {job.get('company', 'N/A')}")
+        st.write(f"**Description:** {job.get('description', 'N/A')}")
+        st.write(f"**Location:** {job.get('location', 'N/A')}")
+        link = job.get('link', '#')
+        st.markdown(f"[Apply Here]({link})")
+        st.write("---")
+
 # # AWS DynamoDB configuration
 # dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 # table = dynamodb.Table('tasks')
