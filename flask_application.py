@@ -7,9 +7,9 @@ from botocore.exceptions import ClientError
 app = Flask(__name__)
 app.secret_key = "CS_class_of_2027"
 
-app.config['GOOGLE_ID'] = '197014094036-rbrpc7ot7nmkkj401809qbb1nheakeis.apps.googleusercontent.com'
-app.config['GOOGLE_SECRET'] = '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'
-app.config['GOOGLE_REDIRECT_URI'] = 'http://ec2-18-191-83-191.us-east-2.compute.amazonaws.com:8080/callback'
+app.config['GOOGLE_ID'] = os.getenv('GOOGLE_ID')
+app.config['GOOGLE_SECRET'] = os.getenv('GOOGLE_SECRET')
+app.config['GOOGLE_REDIRECT_URI'] = os.getenv('GOOGLE_REDIRECT_URI')
 
 # Initialize DynamoDB client and resource
 AWS_REGION = os.getenv("AWS_REGION")

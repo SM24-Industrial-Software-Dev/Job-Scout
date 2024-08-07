@@ -1,3 +1,5 @@
+import datetime
+
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import RedirectResponse
 import requests
@@ -9,14 +11,11 @@ import notifs
 import refresh
 import os
 from pydantic import BaseModel
-
-from jobspy_scraper import JobScraper
-
 from task_sched_dbs.Master import Master
-from task_sched_dbs.Tables import Notifs, Task
+from task_sched_dbs.Tables import Notifs, Task, Refresh
 from flask_application import app as flask_app
 from scraper import Scraper
-from jobspy_scraper import JobScraper
+from datetime import datetime
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,8 +29,8 @@ redirect_uri = 'http://ec2-3-21-189-151.us-east-2.compute.amazonaws.com:8080/cal
 # Initialize FastAPI app
 app = FastAPI()
 master = Master(10)
-scraper = JobScraper()
-scraper.scrape_jobs()
+scraper = Scraper()
+scraper.linkedin_scraper()
 
 new_task = Refresh(
     task_id=0,

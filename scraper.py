@@ -12,7 +12,7 @@ class Scraper:
         self.table = self.dynamodb.Table(table_name)
         self.data = []
 
-    def linkedin_scraper(self, page_number=0, job_counter:int = 0):
+    def linkedin_scraper(self, page_number=0, job_counter:int = 81):
         base_url = 'https://www.linkedin.com/jobs-guest/jobs/api/seeMoreJobPostings/search?trk=public_jobs_jobs-search-bar_search-submit&position=1&pageNum=0&start='
         next_page = base_url + str(page_number)
         print(f"Scraping URL: {next_page}")

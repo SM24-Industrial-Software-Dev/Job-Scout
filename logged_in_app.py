@@ -229,18 +229,20 @@ st.title("My Searches")
 #         for key, value in search_dict.items():
 #             st.write(f"({key}) Company: {value['company']}, Location: {value['location']}, Title: {value['title']}")
 
+# Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb', region_name='us-east-2')
 table = dynamodb.Table('tasks')
 
+# Function to fetch searches by user_id
 def fetch_searches_by_user(user_id):
     try:
         response = table.query(
             IndexName='user_id-index',
-            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(user_id),
-            ProjectionExpression='#loc, company, #intrvl, title',
+            KeyConditionExpression=boto3.dynamodb.conditions.Key('user_id').eq(int(user_id)),
+            ProjectionExpression='#loc, company, #inter, title',
             ExpressionAttributeNames={
                 '#loc': 'location',
-                '#intrvl': 'interval'
+                '#inter': 'interval'
             }
         )
         return response.get('Items', [])
@@ -256,12 +258,38 @@ def display_searches(user_id):
     if not searches:
         st.write("No saved searches.")
     else:
-        for search in searches:
-            company = search.get('company', 'N/A')
-            location = search.get('location', 'N/A')
-            title = search.get('title', 'N/A')
+        for index, search in enumerate(searches, start=1):
+            display_text = []
+            company = search.get('company')
+            location = search.get('location')
+            title = search.get('title')
             interval = search.get('interval', 'N/A')
-            st.write(f"Company: {company}, Location: {location}, Title: {title}, Interval: {interval}")
+
+            if company:
+                display_text.append(f"Company: {company}")
+            if location:
+                display_text.append(f"Location: {location}")
+            if title:
+                display_text.append(f"Title: {title}")
+            display_text.append(f"Interval: {convert_interval_to_frequency(interval)}")
+
+            st.write(f"{index}. " + ", ".join(display_text))
+
+def convert_interval_to_frequency(interval) -> str:
+    if interval == "PT1M":
+        return 'Every Minute (For Testing)'
+    elif interval == "P1D":
+        return 'Daily'
+    elif interval == "P7D":
+        return 'Weekly'
+    elif interval == "P14D":
+        return 'Bimonthly'
+    elif interval == "P30D":
+        return 'Monthly'
+    elif interval == "P3.5D":
+        return 'Biweekly'
+    else:
+        return 'Weekly'
 
 if st.button('Display My Searches'):
     display_searches(user_id)
